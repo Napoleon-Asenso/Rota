@@ -33,12 +33,14 @@ import { listActivitiesHandler } from './controllers/activity.controller';
 import { listMembersHandler, inviteMemberHandler } from './controllers/team.controller';
 import { getSubscriptionHandler, updateSeatsHandler, handleBillingWebhook } from './controllers/billing.controller';
 import { getSettings, updateSettings, registerDeviceToken } from './controllers/settings';
+import { readYourOwnWritesMiddleware } from './db/router';
 
 export const app = express();
 
 app.use(helmet());
 app.use(cors());
 app.use(express.json());
+app.use(readYourOwnWritesMiddleware);
 
 // -------------------------------------------------------------
 // Health Check Route

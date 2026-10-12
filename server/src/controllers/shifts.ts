@@ -2,6 +2,12 @@ import { Response } from 'express';
 import { z } from 'zod';
 import { AuthenticatedRequest } from '../types';
 import { prisma } from '../db/prisma';
+import { getShardClient } from '../db/sharding';
+import {
+  getCachedShifts,
+  setCachedShifts,
+  invalidateTeamShiftCache
+} from '../services/shiftCache.service';
 
 const ListShiftsQuerySchema = z.object({
   startDate: z.string().optional(),
@@ -28,6 +34,7 @@ const RequestSwapSchema = z.object({
 /**
  * GET /api/shifts
  * Fetch shifts for the authenticated user's teamId, optionally filtered by date range.
+ * Employs Redis Cache-Aside (<2ms hit) and routes cache-misses to the sharded/replica client.
  */
 export async function getShifts(req: AuthenticatedRequest, res: Response): Promise<void> {
   const teamId = req.user?.teamId || req.tenant?.teamId;
@@ -40,10 +47,24 @@ export async function getShifts(req: AuthenticatedRequest, res: Response): Promi
   }
 
   const query = ListShiftsQuerySchema.parse(req.query);
+
+  // 1. Redis Cache-Aside: Check cached response first
+  const cached = await getCachedShifts(teamId, query.startDate, query.endDate);
+  if (cached) {
+    res.setHeader('X-Cache', 'HIT');
+    res.status(200).json({
+      success: true,
+      data: cached
+    });
+    return;
+  }
+
+  // 2. Cache Miss: Route to appropriate sharded / replica DB client
+  const db = (req as any).db || getShardClient(teamId);
   const start = query.startDate ? new Date(query.startDate) : undefined;
   const end = query.endDate ? new Date(query.endDate) : undefined;
 
-  const shifts = await prisma.shift.findMany({
+  const shifts = await db.shift.findMany({
     where: {
       teamId,
       ...(start || end
@@ -70,13 +91,17 @@ export async function getShifts(req: AuthenticatedRequest, res: Response): Promi
     orderBy: { startTime: 'asc' }
   });
 
-  const formatted = shifts.map((shift) => ({
+  const formatted = shifts.map((shift: any) => ({
     ...shift,
     assignedToId: shift.userId,
     assignedToName: shift.user?.fullName,
     venue: shift.location,
     hasActiveSwap: shift.swapRequests.length > 0
   }));
+
+  // 3. Populate Redis Cache (TTL: 60s)
+  await setCachedShifts(teamId, formatted, query.startDate, query.endDate);
+  res.setHeader('X-Cache', 'MISS');
 
   res.status(200).json({
     success: true,
@@ -195,6 +220,9 @@ export async function createShift(req: AuthenticatedRequest, res: Response): Pro
 
     return [shift, act];
   });
+
+  // Invalidate Redis shift cache for this team
+  await invalidateTeamShiftCache(teamId);
 
   res.status(201).json({
     success: true,
@@ -408,6 +436,9 @@ export async function approveSwap(req: AuthenticatedRequest, res: Response): Pro
 
     return [approvedSwap, reallocatedShift, act];
   });
+
+  // Invalidate Redis shift cache for this team
+  await invalidateTeamShiftCache(teamId);
 
   res.status(200).json({
     success: true,
