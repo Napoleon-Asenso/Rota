@@ -48,9 +48,9 @@ export function useShiftSwaps() {
 
       // Optimistically update shifts cache
       if (previousShifts) {
-        queryClient.setQueryData<ShiftItem[]>(['shifts'], (old) => {
+        queryClient.setQueryData<ShiftItem[]>(['shifts'], (old: ShiftItem[] | undefined): ShiftItem[] => {
           if (!old) return [];
-          return old.map((shift) => {
+          return old.map((shift: ShiftItem): ShiftItem => {
             if (shift.id === newSwapPayload.shiftId) {
               return {
                 ...shift,

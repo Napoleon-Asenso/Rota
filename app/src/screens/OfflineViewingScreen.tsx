@@ -6,6 +6,7 @@ import { Text } from '../components/Text';
 import { Card } from '../components/Card';
 import { Badge } from '../components/Badge';
 import { useAppStore } from '../storage/store';
+import { useShiftStore } from '../stores/shiftStore';
 
 /**
  * Geometric Vector Cloud-Slash Offline Icon
@@ -97,9 +98,6 @@ const CACHED_SHIFTS: CachedShift[] = [
     roleAndVenue: 'Waiter · Main Floor'
   }
 ];
-
-import { useAppStore } from '../storage/store';
-import { useShiftStore } from '../stores/shiftStore';
 
 /**
  * Screen 12: Offline Viewing Screen
