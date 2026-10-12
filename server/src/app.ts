@@ -31,7 +31,7 @@ import {
 } from './controllers/swap.controller';
 import { listActivitiesHandler } from './controllers/activity.controller';
 import { listMembersHandler, inviteMemberHandler } from './controllers/team.controller';
-import { getSubscriptionHandler, updateSeatsHandler } from './controllers/billing.controller';
+import { getSubscriptionHandler, updateSeatsHandler, handleBillingWebhook } from './controllers/billing.controller';
 
 export const app = express();
 
@@ -95,6 +95,7 @@ app.post('/api/teams/invite', authMiddleware, tenantContextMiddleware, inviteMem
 // -------------------------------------------------------------
 app.get('/api/billing/subscription', authMiddleware, tenantContextMiddleware, getSubscriptionHandler);
 app.post('/api/billing/seats', authMiddleware, tenantContextMiddleware, updateSeatsHandler);
+app.post('/api/billing/webhook', handleBillingWebhook);
 
 // -------------------------------------------------------------
 // Centralized Error Handling Middleware
