@@ -144,6 +144,13 @@ export const touchTarget = {
   height: 44
 } as const;
 
+// Layout constraints (including fixed width hero text wrapping)
+export const layout = {
+  heroMaxWidth: 320,
+  heroTextMaxWidth: 340,
+  contentMaxWidth: 440
+} as const;
+
 // Typed, resolved numeric tokens for React Native StyleSheet consumption
 export const tokens = {
   raw: rawTokens,
@@ -154,6 +161,7 @@ export const tokens = {
   radius: borderRadius,
   borderRadius,
   touchTarget,
+  layout,
   elevation: {
     0: { elevation: 0, shadowOpacity: 0 },
     1: { elevation: 1, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.08, shadowRadius: 2 },

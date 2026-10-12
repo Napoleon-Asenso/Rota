@@ -273,7 +273,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: tokens.spacing[6],
-    gap: tokens.spacing[2]
+    gap: tokens.spacing[2],
+    maxWidth: tokens.layout.heroTextMaxWidth,
+    width: '100%'
   },
   shiftsList: {
     gap: tokens.spacing[3]

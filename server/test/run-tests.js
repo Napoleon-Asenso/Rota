@@ -1,4 +1,5 @@
 require('dotenv').config();
+process.env.NODE_ENV = 'test';
 require('ts-node').register({ transpileOnly: true });
 
 const { runBillingUnitTests } = require('./billing.test.ts');

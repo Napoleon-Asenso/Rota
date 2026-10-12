@@ -155,7 +155,9 @@ const styles = StyleSheet.create({
     paddingBottom: tokens.spacing[8]
   },
   header: {
-    marginBottom: tokens.spacing[5]
+    marginBottom: tokens.spacing[5],
+    maxWidth: tokens.layout.heroMaxWidth,
+    width: '100%'
   },
   backButton: {
     marginBottom: tokens.spacing[2],
@@ -163,7 +165,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center'
   },
   title: {
-    marginTop: tokens.spacing[1]
+    marginTop: tokens.spacing[1],
+    width: '100%',
+    flexWrap: 'wrap'
   },
   sectionLabel: {
     marginBottom: tokens.spacing[2],

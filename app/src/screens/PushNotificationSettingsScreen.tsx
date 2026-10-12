@@ -419,16 +419,23 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    marginBottom: tokens.spacing[6]
+    marginBottom: tokens.spacing[6],
+    maxWidth: tokens.layout.heroMaxWidth,
+    width: '100%',
+    alignSelf: 'center'
   },
   title: {
-    textAlign: 'center'
+    textAlign: 'center',
+    width: '100%',
+    flexWrap: 'wrap'
   },
   subtitle: {
     textAlign: 'center',
     marginTop: tokens.spacing[2],
     paddingHorizontal: tokens.spacing[4],
-    lineHeight: 22
+    lineHeight: 22,
+    width: '100%',
+    flexWrap: 'wrap'
   },
   card: {
     padding: tokens.spacing[4]

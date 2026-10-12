@@ -239,10 +239,13 @@ const styles = StyleSheet.create({
     transform: [{ rotate: '-45deg' }]
   },
   header: {
-    marginBottom: tokens.spacing[6]
+    marginBottom: tokens.spacing[6],
+    maxWidth: tokens.layout.heroMaxWidth,
+    width: '100%'
   },
   subtitle: {
-    marginTop: tokens.spacing[1.5]
+    marginTop: tokens.spacing[1.5],
+    flexWrap: 'wrap'
   },
   form: {
     gap: tokens.spacing[4]

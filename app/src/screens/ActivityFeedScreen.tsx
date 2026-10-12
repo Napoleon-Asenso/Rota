@@ -543,7 +543,9 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: tokens.spacing[6],
     paddingTop: tokens.spacing[4],
-    marginBottom: tokens.spacing[2]
+    marginBottom: tokens.spacing[2],
+    maxWidth: tokens.layout.heroMaxWidth,
+    width: '100%'
   },
   chipsWrapper: {
     marginBottom: tokens.spacing[3]

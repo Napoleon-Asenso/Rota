@@ -10,12 +10,16 @@ export interface TextProps extends RNTextProps {
   variant?: TextVariant;
   weight?: TextWeight;
   color?: string;
+  hero?: boolean;
+  fixedWidth?: number;
 }
 
 export function Text({
   variant = 'base',
   weight = 'regular',
   color,
+  hero = false,
+  fixedWidth,
   style,
   children,
   ...rest
@@ -26,6 +30,12 @@ export function Text({
   const fontSize = tokens.typography.size[variant];
   const fontWeight = tokens.typography.weight[weight];
 
+  const heroStyle = (hero || fixedWidth) ? {
+    maxWidth: fixedWidth || tokens.layout.heroMaxWidth,
+    width: '100%' as const,
+    flexWrap: 'wrap' as const
+  } : undefined;
+
   return (
     <RNText
       style={[
@@ -35,6 +45,7 @@ export function Text({
           fontWeight,
           color: textColor
         },
+        heroStyle,
         style
       ]}
       allowFontScaling

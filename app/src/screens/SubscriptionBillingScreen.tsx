@@ -135,7 +135,9 @@ const styles = StyleSheet.create({
     paddingBottom: tokens.spacing[8]
   },
   header: {
-    marginBottom: tokens.spacing[6]
+    marginBottom: tokens.spacing[6],
+    maxWidth: tokens.layout.heroMaxWidth,
+    width: '100%'
   },
   planCard: {
     padding: tokens.spacing[5],

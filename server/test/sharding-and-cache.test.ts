@@ -20,7 +20,7 @@ import {
   getCachedShifts,
   setCachedShifts,
   invalidateTeamShiftCache
-} from '../services/shiftCache.service';
+} from '../src/services/shiftCache.service';
 import { AuthenticatedRequest } from '../src/types';
 
 export async function runShardingAndCacheTests(): Promise<void> {

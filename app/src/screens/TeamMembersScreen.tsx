@@ -101,10 +101,13 @@ const styles = StyleSheet.create({
     paddingBottom: tokens.spacing[24]
   },
   header: {
-    marginBottom: tokens.spacing[6]
+    marginBottom: tokens.spacing[6],
+    maxWidth: tokens.layout.heroMaxWidth,
+    width: '100%'
   },
   subtitle: {
-    marginTop: tokens.spacing[1.5]
+    marginTop: tokens.spacing[1.5],
+    flexWrap: 'wrap'
   },
   memberList: {
     gap: tokens.accessibility.touchTargetGap

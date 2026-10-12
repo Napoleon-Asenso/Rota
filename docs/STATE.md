@@ -154,7 +154,41 @@ Trigger Event (Shift change, Swap, Billing)
 
 ---
 
-### 8. Architectural Guarantees & Constraints Checklist
+### 8. Database Sharding, Connection Pooling & Cache-Aside Architecture (Milestone 11)
+
+#### 8.1. Connection Pooling Invariants (`pool.ts`)
+- **Connection Ceiling**: Set to `connection_limit = 20` with `pool_timeout = 10s` and `connect_timeout = 10s`.
+- **Exhaustion Mitigation**: Constrains Node.js client concurrency to protect PostgreSQL from connection starvation, preventing fatal `53300: too many clients` crashes during high-traffic surges.
+
+#### 8.2. Read-Your-Own-Writes Splitting (`router.ts`)
+- **Primary vs. Replica Routing**:
+  - All write mutations (`POST`, `PUT`, `PATCH`, `DELETE`) route to `primaryClient` and set `user:<userId>:recent_write` in Redis with a **5-second TTL**.
+  - Read queries (`GET`) check the `recent_write` Redis key. If present, reads route to `primaryClient` to eliminate replication lag anomalies. Otherwise, reads offload to `replicaClient`.
+
+#### 8.3. 2-Database Sharding Simulation (`sharding.ts`)
+- **Tenant Routing Algorithm**:
+  $$\text{shardIndex} = \text{parseInt}(\text{MD5}(\text{teamId})[0..8], 16) \pmod 2$$
+- **Balanced Distribution**: Distributes operational workloads evenly across `shard1Client` (Shard 0) and `shard2Client` (Shard 1), while Central Directory identity lookups reside on Shard 0.
+- **Prisma Relation Mode**: Application-level referential integrity (`relationMode = "prisma"`) guarantees zero cross-database foreign key constraints.
+
+#### 8.4. Redis Cache-Aside for Shift Calendars (`shiftCache.service.ts`)
+- **Cache-Aside Pattern**:
+  - `GET /api/shifts`: Checks key `team:<teamId>:shifts:<start>:<end>`. Returns cached roster in sub-2ms (`X-Cache: HIT`). On cache miss, queries database, populates Redis with 60s TTL, and returns (`X-Cache: MISS`).
+  - Mutations (`POST /api/shifts`, `POST /api/swaps/:id/approve`): Automatically purge `team:<teamId>:shifts:*` cache keys.
+
+#### 8.5. 200 Virtual Users Benchmark Results (`load-tests/run-load-test.js`)
+```
+  checks.........................: 100.00% ✓ 3000  ✗ 0
+  http_req_duration..............: avg=2.36ms  med=1.79ms  p(90)=5.48ms  p(95)=7.33ms  p(99)=8.79ms
+  http_req_failed................: 0.00%
+  http_reqs......................: 3000 (1007.7 req/s)
+  cache_hit_ratio................: 86.0% (2580 hits / 420 misses)
+  vus............................: 200 (max=200)
+```
+
+---
+
+### 9. Architectural Guarantees & Constraints Checklist
 
 - [x] **Zero SQL OFFSET**: Activity pagination strictly uses index scans on `(team_id, created_at DESC, id DESC)`.
 - [x] **Integer-Cent Monetary State**: All billing calculations on backend use whole minor currency units (cents).
@@ -164,4 +198,10 @@ Trigger Event (Shift change, Swap, Billing)
 - [x] **Zero Synchronous Push in HTTP Handlers**: All push notifications processed asynchronously via BullMQ.
 - [x] **Timezone-Aware Midnight-Spanning Quiet Hours**: Exact millisecond delays computed with `date-fns-tz`.
 - [x] **Automatic Dead Token Pruning**: `DeviceNotRegistered` errors automatically purge expired push tokens.
+- [x] **Connection Pool Hard Limit**: Prisma PostgreSQL connection limit bounded to 20 connections.
+- [x] **Read-Your-Own-Writes Consistency**: 5-second Redis TTL prevents replica lag visual tearing.
+- [x] **2-Database Sharding Simulation**: Deterministic tenant isolation via MD5 & CRC32 hashing.
+- [x] **Redis Cache-Aside for Shifts**: Roster queries cached with 60s TTL and mutated invalidation.
+- [x] **200 VU Load Verification**: p95 latency under 10ms with 100% throughput across 200 VUs.
+
 

@@ -257,7 +257,9 @@ const styles = StyleSheet.create({
   header: {
     marginBottom: tokens.spacing[4],
     gap: tokens.spacing[2],
-    alignItems: 'flex-start'
+    alignItems: 'flex-start',
+    maxWidth: tokens.layout.heroMaxWidth,
+    width: '100%'
   },
   sectionLabel: {
     marginBottom: tokens.spacing[1.5],

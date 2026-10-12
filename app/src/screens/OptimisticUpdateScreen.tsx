@@ -160,7 +160,9 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start'
   },
   header: {
-    marginBottom: tokens.spacing[4]
+    marginBottom: tokens.spacing[4],
+    maxWidth: tokens.layout.heroMaxWidth,
+    width: '100%'
   },
   tabContainer: {
     flexDirection: 'row',

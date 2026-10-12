@@ -201,7 +201,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: tokens.spacing[4]
+    marginBottom: tokens.spacing[4],
+    maxWidth: tokens.layout.heroTextMaxWidth,
+    width: '100%'
   },
   toggleContainer: {
     flexDirection: 'row',

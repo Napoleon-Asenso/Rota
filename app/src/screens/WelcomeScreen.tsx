@@ -175,54 +175,96 @@ export function WelcomeScreen(): React.JSX.Element {
           }
         ]}
       >
-        {/* Dynamic Celestial Shift Orbits (Continuous 360° Rotation in Top Space) */}
-        <View
-          style={styles.orbitalViewport}
-          accessibilityElementsHidden
-          importantForAccessibility="no-hide-descendants"
-        >
-          <Animated.View
-            style={[
-              styles.orbitalGroup,
-              {
-                transform: [
-                  { scale: orbitalScale },
-                  { rotate: spinInterpolation }
-                ]
-              }
-            ]}
+        {/* Middle Content Area: Centered celestial background, Brand Logo, WELCOME TO ROTA, and description */}
+        <View style={styles.middleArea}>
+          {/* Ambient Celestial Orbits (Continuous 360° Rotation in Center Space) */}
+          <View
+            style={styles.orbitalBackground}
+            pointerEvents="none"
+            accessibilityElementsHidden
+            importantForAccessibility="no-hide-descendants"
           >
-            {/* Outer Orbit 4 */}
-            <View style={styles.ringFour}>
-              <View style={styles.nodeFourA} />
-              <View style={styles.diamondFourB} />
+            <Animated.View
+              style={[
+                styles.orbitalGroup,
+                {
+                  transform: [
+                    { scale: orbitalScale },
+                    { rotate: spinInterpolation }
+                  ]
+                }
+              ]}
+            >
+              {/* Outer Orbit 4 */}
+              <View style={styles.ringFour}>
+                <View style={styles.nodeFourA} />
+                <View style={styles.diamondFourB} />
+              </View>
+
+              {/* Orbit 3 */}
+              <View style={styles.ringThree}>
+                <View style={styles.nodeThreeA} />
+                <View style={styles.diamondThreeB} />
+              </View>
+
+              {/* Orbit 2 */}
+              <View style={styles.ringTwo}>
+                <View style={styles.nodeTwoA} />
+                <View style={styles.nodeTwoB} />
+              </View>
+
+              {/* Inner Orbit 1 */}
+              <View style={styles.ringOne}>
+                <View style={styles.nodeOne} />
+              </View>
+
+              {/* Center Rota Core Hub */}
+              <View style={styles.coreHub}>
+                <View style={styles.coreDot} />
+              </View>
+            </Animated.View>
+          </View>
+
+          {/* Centered Hero Content: Brand Logo -> WELCOME TO -> ROTA -> Description */}
+          <View style={styles.middleHeroContainer}>
+            {/* 1. Brand Logo on top of text */}
+            <View style={styles.heroLogoWrapper}>
+              <RotaLogo size={68} />
             </View>
 
-            {/* Orbit 3 */}
-            <View style={styles.ringThree}>
-              <View style={styles.nodeThreeA} />
-              <View style={styles.diamondThreeB} />
+            {/* 2. WELCOME TO ROTA stacked in capital letters */}
+            <View style={styles.brandTitleContainer}>
+              <Text
+                weight="bold"
+                variant="base"
+                color="#94A3B8"
+                style={styles.welcomeToText}
+              >
+                WELCOME TO
+              </Text>
+              <Text
+                weight="extrabold"
+                variant="4xl"
+                color="#FFFFFF"
+                style={styles.rotaBrandText}
+                accessibilityRole="header"
+              >
+                ROTA
+              </Text>
             </View>
 
-            {/* Orbit 2 */}
-            <View style={styles.ringTwo}>
-              <View style={styles.nodeTwoA} />
-              <View style={styles.nodeTwoB} />
-            </View>
-
-            {/* Inner Orbit 1 */}
-            <View style={styles.ringOne}>
-              <View style={styles.nodeOne} />
-            </View>
-
-            {/* Center Rota Core Hub */}
-            <View style={styles.coreHub}>
-              <View style={styles.coreDot} />
-            </View>
-          </Animated.View>
+            {/* 3. Befitting App Description */}
+            <Text
+              variant="sm"
+              color="rgba(255, 255, 255, 0.72)"
+              style={styles.descriptionText}
+            >
+              Mobile-first shift scheduling & team coordination built for modern deskless workforces.
+            </Text>
+          </View>
         </View>
 
-        {/* Bottom Content Area */}
+        {/* Bottom Content Area: Action Buttons remain pinned at the bottom */}
         <Animated.View
           style={[
             styles.bottomArea,
@@ -231,33 +273,6 @@ export function WelcomeScreen(): React.JSX.Element {
             }
           ]}
         >
-          {/* Headline */}
-          <Text
-            weight="bold"
-            variant="3xl"
-            color="#FFFFFF"
-            style={styles.welcomeHeadline}
-            accessibilityRole="header"
-          >
-            Welcome to Rota
-          </Text>
-
-          {/* Legal / Terms Subtitle */}
-          <Text
-            variant="xs"
-            color="rgba(255, 255, 255, 0.65)"
-            style={styles.termsText}
-          >
-            By continuing, you agree to{' '}
-            <Text variant="xs" weight="medium" color="#38BDF8">
-              Terms of Service
-            </Text>{' '}
-            and{' '}
-            <Text variant="xs" weight="medium" color="#38BDF8">
-              Privacy Policy
-            </Text>
-          </Text>
-
           {/* Action Buttons */}
           <View style={styles.buttonsContainer}>
             {/* Primary Pill Button: Create new account (Screen 2: Sign Up) */}
@@ -385,15 +400,19 @@ const styles = StyleSheet.create({
     overflow: 'hidden'
   },
 
-  // Concentric Celestial Orbits Viewport (flex-1 contained without overflow)
-  orbitalViewport: {
+  // Middle Content Area
+  middleArea: {
     flex: 1,
-    minHeight: 180,
-    maxHeight: 340,
     width: '100%',
     justifyContent: 'center',
     alignItems: 'center',
-    overflow: 'hidden'
+    position: 'relative'
+  },
+  orbitalBackground: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 0
   },
   orbitalGroup: {
     width: 320,
@@ -521,22 +540,48 @@ const styles = StyleSheet.create({
     backgroundColor: '#38BDF8'
   },
 
+  // Centered Hero Elements
+  middleHeroContainer: {
+    width: '100%',
+    alignItems: 'center',
+    zIndex: 1
+  },
+  heroLogoWrapper: {
+    marginBottom: tokens.spacing[4],
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  brandTitleContainer: {
+    alignItems: 'center',
+    marginBottom: tokens.spacing[3]
+  },
+  welcomeToText: {
+    letterSpacing: 3,
+    textTransform: 'uppercase',
+    textAlign: 'center',
+    marginBottom: 4
+  },
+  rotaBrandText: {
+    letterSpacing: 2,
+    textTransform: 'uppercase',
+    textAlign: 'center',
+    fontSize: 34
+  },
+  descriptionText: {
+    textAlign: 'center',
+    lineHeight: 22,
+    maxWidth: tokens.layout.heroMaxWidth,
+    width: '100%',
+    flexWrap: 'wrap',
+    alignSelf: 'center',
+    paddingHorizontal: tokens.spacing[2]
+  },
+
   // Bottom Content Area
   bottomArea: {
     width: '100%',
     alignItems: 'center',
-    gap: tokens.spacing[2.5],
     paddingBottom: tokens.spacing[2]
-  },
-  welcomeHeadline: {
-    textAlign: 'center',
-    letterSpacing: -0.5
-  },
-  termsText: {
-    textAlign: 'center',
-    lineHeight: 18,
-    maxWidth: 290,
-    marginBottom: tokens.spacing[2]
   },
   buttonsContainer: {
     width: '100%',
