@@ -99,6 +99,14 @@ app.post('/api/billing/seats', authMiddleware, tenantContextMiddleware, updateSe
 app.post('/api/billing/webhook', handleBillingWebhook);
 
 // -------------------------------------------------------------
+// User Settings & Push Device Registration Routes (Milestone 10)
+// -------------------------------------------------------------
+app.get('/api/settings', authMiddleware, getSettings);
+app.patch('/api/settings', authMiddleware, updateSettings);
+app.post('/api/devices/token', authMiddleware, registerDeviceToken);
+app.post('/api/v1/devices/register', authMiddleware, registerDeviceToken);
+
+// -------------------------------------------------------------
 // Centralized Error Handling Middleware
 // -------------------------------------------------------------
 app.use(errorHandler);
