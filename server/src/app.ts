@@ -13,6 +13,13 @@ import {
   logoutAllHandler as revokeAllHandler
 } from './controllers/auth.controller';
 import {
+  getShifts,
+  createShift,
+  requestSwap,
+  approveSwap
+} from './controllers/shifts';
+import { getActivities } from './controllers/activities';
+import {
   listShiftsHandler,
   createShiftHandler,
   publishShiftsHandler
@@ -56,24 +63,26 @@ app.post('/api/auth/revoke-all', authMiddleware, revokeAllHandler);
 app.get('/api/auth/me', authMiddleware, meHandler);
 
 // -------------------------------------------------------------
-// Core Shift Management Routes
+// Core Shift Management Routes (Milestone 8)
 // -------------------------------------------------------------
-app.get('/api/shifts', authMiddleware, tenantContextMiddleware, listShiftsHandler);
-app.post('/api/shifts', authMiddleware, tenantContextMiddleware, createShiftHandler);
+app.get('/api/shifts', authMiddleware, tenantContextMiddleware, getShifts);
+app.post('/api/shifts', authMiddleware, tenantContextMiddleware, createShift);
 app.post('/api/shifts/publish', authMiddleware, tenantContextMiddleware, publishShiftsHandler);
 
 // -------------------------------------------------------------
-// Shift Swap Lifecycle Routes
+// Shift Swap Lifecycle Routes (Milestone 8)
 // -------------------------------------------------------------
 app.get('/api/swaps', authMiddleware, tenantContextMiddleware, listSwapsHandler);
 app.post('/api/swaps', authMiddleware, tenantContextMiddleware, createSwapHandler);
-app.post('/api/swaps/:swapId/review', authMiddleware, tenantContextMiddleware, reviewSwapHandler);
+app.post('/api/swaps/request', authMiddleware, tenantContextMiddleware, requestSwap);
+app.post('/api/swaps/:id/approve', authMiddleware, tenantContextMiddleware, approveSwap);
+app.post('/api/swaps/:swapId/review', authMiddleware, tenantContextMiddleware, approveSwap);
 
 // -------------------------------------------------------------
-// Activity Feed Routes (Cursor-Paginated)
+// Activity Feed Routes (Cursor-Paginated - Milestone 8)
 // -------------------------------------------------------------
-app.get('/api/activities', authMiddleware, tenantContextMiddleware, listActivitiesHandler);
-app.get('/api/teams/:teamId/feed', authMiddleware, tenantContextMiddleware, listActivitiesHandler);
+app.get('/api/activities', authMiddleware, tenantContextMiddleware, getActivities);
+app.get('/api/teams/:teamId/feed', authMiddleware, tenantContextMiddleware, getActivities);
 
 // -------------------------------------------------------------
 // Team Members & Role Management Routes
