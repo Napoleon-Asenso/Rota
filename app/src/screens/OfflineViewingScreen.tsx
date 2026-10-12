@@ -98,15 +98,15 @@ const CACHED_SHIFTS: CachedShift[] = [
   }
 ];
 
+import { useAppStore } from '../storage/store';
+import { useShiftStore } from '../stores/shiftStore';
+
 /**
  * Screen 12: Offline Viewing Screen
  * Features:
  * - Back arrow header navigation
  * - Header title "Upcoming Shifts" with "Available Offline" status pill (#059669 on #ECFDF5)
- * - Cached shift cards matching exact copies:
- *   - Tue, May 27: 9:00 AM - 5:00 PM · Waiter · Main Floor
- *   - Wed, May 28: 5:00 PM - 1:00 AM · Waiter · Main Floor
- *   - Thu, May 29: 9:00 AM - 5:00 PM · Waiter · Main Floor
+ * - Reads upcoming shifts dynamically from persistent useShiftStore
  * - Persistent floating bottom banner in surface-container-high-color:
  *   - Cloud-slash offline icon in primary-color
  *   - "You're offline. Showing cached data"
@@ -114,6 +114,8 @@ const CACHED_SHIFTS: CachedShift[] = [
 export function OfflineViewingScreen(): React.JSX.Element {
   const { colors } = useTheme();
   const setCurrentScreenId = useAppStore((s) => s.setCurrentScreenId);
+  const upcomingShifts = useShiftStore((s) => s.upcomingShifts);
+  const lastUpdated = useShiftStore((s) => s.lastUpdated);
 
   return (
     <View style={[styles.root, { backgroundColor: colors['background-color'] }]}>
@@ -157,7 +159,7 @@ export function OfflineViewingScreen(): React.JSX.Element {
 
         {/* Cached Shift Cards List */}
         <View style={styles.shiftsList}>
-          {CACHED_SHIFTS.map((shift) => (
+          {upcomingShifts.map((shift) => (
             <Card
               key={shift.id}
               variant="elevated"
