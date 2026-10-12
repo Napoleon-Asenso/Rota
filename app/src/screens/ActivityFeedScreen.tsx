@@ -23,6 +23,7 @@ import {
   ErrorState,
   InfiniteScrollFooter
 } from '../components/feed';
+import { useActivityFeed } from '../hooks/useActivityFeed';
 
 export interface ActivityItem {
   id: string;
@@ -264,20 +265,56 @@ export function ActivityFeedScreen(): React.JSX.Element {
 
   const [activeFilterChip, setActiveFilterChip] = useState<'All' | 'Shifts' | 'Swaps' | 'Changes'>('All');
   const [previewState, setPreviewState] = useState<FeedPreviewState>('normal');
-  const [refreshing, setRefreshing] = useState<boolean>(false);
   const [isPending, startTransition] = useTransition();
 
   const filterChips: Array<'All' | 'Shifts' | 'Swaps' | 'Changes'> = ['All', 'Shifts', 'Swaps', 'Changes'];
 
-  const filtered = activeFilterChip === 'All'
+  // TanStack Infinite Query integration
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+    isError,
+    refetch,
+    isRefetching
+  } = useActivityFeed(activeFilterChip);
+
+  const filteredFallback = activeFilterChip === 'All'
     ? ACTIVITIES
     : ACTIVITIES.filter((a) => a.category === activeFilterChip);
 
+  const liveItems: ActivityItem[] = (data?.pages.flatMap((p) => p.items) ?? []).map((item) => {
+    let mappedType: ActivityItem['type'] = 'shift_published';
+    const rawType = item.type?.toUpperCase() || '';
+    if (rawType.includes('SWAP_REQ')) mappedType = 'swap_request';
+    else if (rawType.includes('SWAP_APP')) mappedType = 'shift_approved';
+    else if (rawType.includes('MEMBER')) mappedType = 'member_joined';
+
+    return {
+      id: item.id,
+      type: mappedType,
+      title: item.title,
+      details: item.details,
+      timeAgo: item.timeAgo || 'Just now',
+      category: item.category || 'Shifts',
+      badge: item.badge
+    };
+  });
+
+  const displayItems = previewState === 'normal'
+    ? (liveItems.length > 0 ? liveItems : filteredFallback)
+    : filteredFallback;
+
   const handleRefresh = (): void => {
-    setRefreshing(true);
-    setTimeout(() => {
-      setRefreshing(false);
-    }, 1000);
+    refetch();
+  };
+
+  const handleEndReached = (): void => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
   };
 
   const handleChipSelect = (chip: 'All' | 'Shifts' | 'Swaps' | 'Changes'): void => {
@@ -412,56 +449,60 @@ export function ActivityFeedScreen(): React.JSX.Element {
       </View>
 
       {/* State View Routing (Screens 13–17) */}
-      {previewState === 'loading' ? (
+      {previewState === 'loading' || (previewState === 'normal' && isLoading) ? (
         <LoadingState />
-      ) : previewState === 'empty' ? (
-        <EmptyState onRefresh={() => setPreviewState('normal')} />
-      ) : previewState === 'error' ? (
-        <ErrorState onRetry={() => setPreviewState('normal')} />
+      ) : previewState === 'empty' || (previewState === 'normal' && !isLoading && displayItems.length === 0) ? (
+        <EmptyState onRefresh={() => { setPreviewState('normal'); refetch(); }} />
+      ) : previewState === 'error' || (previewState === 'normal' && isError) ? (
+        <ErrorState onRetry={() => { setPreviewState('normal'); refetch(); }} />
       ) : (
         /* High-Performance Activity List (FlashList on Native, FlatList Fallback on Web) */
         <View style={styles.listContainer}>
           {Platform.OS === 'web' ? (
             <FlatList
-              data={filtered}
+              data={displayItems}
               keyExtractor={(item) => item.id}
               renderItem={renderItem}
               contentContainerStyle={styles.feedContentContainer}
+              onEndReached={handleEndReached}
+              onEndReachedThreshold={0.5}
               refreshControl={
                 <RefreshControl
-                  refreshing={refreshing}
+                  refreshing={isRefetching}
                   onRefresh={handleRefresh}
                   tintColor={colors['primary-color']}
                 />
               }
               ListFooterComponent={
-                previewState === 'end' ? (
+                previewState === 'end' || (!hasNextPage && displayItems.length > 0) ? (
                   <EndOfListState />
-                ) : (
+                ) : isFetchingNextPage ? (
                   <InfiniteScrollFooter loading={true} />
-                )
+                ) : null
               }
             />
           ) : (
             <FlashList
-              data={filtered}
+              data={displayItems}
               keyExtractor={(item) => item.id}
               renderItem={renderItem}
               estimatedItemSize={120}
               contentContainerStyle={styles.feedContentContainer}
+              onEndReached={handleEndReached}
+              onEndReachedThreshold={0.5}
               refreshControl={
                 <RefreshControl
-                  refreshing={refreshing}
+                  refreshing={isRefetching}
                   onRefresh={handleRefresh}
                   tintColor={colors['primary-color']}
                 />
               }
               ListFooterComponent={
-                previewState === 'end' ? (
+                previewState === 'end' || (!hasNextPage && displayItems.length > 0) ? (
                   <EndOfListState />
-                ) : (
+                ) : isFetchingNextPage ? (
                   <InfiniteScrollFooter loading={true} />
-                )
+                ) : null
               }
             />
           )}
