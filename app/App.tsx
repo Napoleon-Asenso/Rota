@@ -93,11 +93,25 @@ function MainContent(): React.JSX.Element {
   );
 }
 
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+      staleTime: 1000 * 30
+    }
+  }
+});
+
 export default function App(): React.JSX.Element {
   return (
-    <ThemeProvider>
-      <MainContent />
-    </ThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
+        <MainContent />
+      </ThemeProvider>
+    </QueryClientProvider>
   );
 }
 
