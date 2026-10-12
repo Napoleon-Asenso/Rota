@@ -32,6 +32,7 @@ import {
 import { listActivitiesHandler } from './controllers/activity.controller';
 import { listMembersHandler, inviteMemberHandler } from './controllers/team.controller';
 import { getSubscriptionHandler, updateSeatsHandler, handleBillingWebhook } from './controllers/billing.controller';
+import { getSettings, updateSettings, registerDeviceToken } from './controllers/settings';
 
 export const app = express();
 
