@@ -8,12 +8,31 @@ import { Badge } from '../components/Badge';
 import { Button } from '../components/Button';
 import { Tappable } from '../components/Tappable';
 import { useAppStore } from '../storage/store';
+import { useShiftSwaps } from '../hooks/useShiftSwaps';
 
 export function RequestSwapScreen(): React.JSX.Element {
   const { colors } = useTheme();
   const setCurrentScreenId = useAppStore((s) => s.setCurrentScreenId);
+  const { requestSwap, isPending } = useShiftSwaps();
 
   const [message, setMessage] = useState('');
+
+  const handleSendRequest = (): void => {
+    requestSwap(
+      {
+        shiftId: 'shift-demo-1',
+        targetUserId: 'user-marcus-1',
+        reason: message || 'Shift swap request'
+      },
+      {
+        onSuccess: () => {
+          setCurrentScreenId(18);
+        }
+      }
+    );
+    // Instantly navigate to Screen 18 with optimistic in-flight state
+    setCurrentScreenId(18);
+  };
 
   return (
     <ScrollView
@@ -114,9 +133,10 @@ export function RequestSwapScreen(): React.JSX.Element {
 
       {/* Primary Action Button */}
       <Button
-        title="Send Request"
+        title={isPending ? "Sending Request..." : "Send Request"}
         accessibilityHint="Submits shift swap request to selected coworker"
-        onPress={() => setCurrentScreenId(18)} // Trigger Screen 18 (Optimistic Update Screen)
+        disabled={isPending}
+        onPress={handleSendRequest}
         style={styles.sendButton}
       />
     </ScrollView>
