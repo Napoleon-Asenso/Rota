@@ -1,8 +1,13 @@
 import { Response, NextFunction } from 'express';
-import { AuthenticatedRequest, Role } from '../types';
+import { Role } from '@prisma/client';
+import { AuthenticatedRequest, Role as TypeRole } from '../types';
 import { verifyAccessToken } from '../utils/jwt';
 
-export function authMiddleware(
+/**
+ * authenticate (authMiddleware)
+ * Validates Bearer access token, extracts userId, teamId, role, and attaches to req.user.
+ */
+export function authenticate(
   req: AuthenticatedRequest,
   res: Response,
   next: NextFunction
@@ -11,7 +16,11 @@ export function authMiddleware(
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     res.status(401).json({
       success: false,
-      error: { code: 'UNAUTHORIZED', message: 'Missing or malformed Authorization header.', details: null }
+      error: {
+        code: 'UNAUTHORIZED',
+        message: 'Missing or malformed Authorization header.',
+        details: null
+      }
     });
     return;
   }
@@ -21,31 +30,46 @@ export function authMiddleware(
     const payload = verifyAccessToken(token);
     req.user = payload;
     next();
-  } catch {
+  } catch (err) {
     res.status(401).json({
       success: false,
-      error: { code: 'INVALID_TOKEN', message: 'Token is expired or invalid.', details: null }
+      error: {
+        code: 'INVALID_TOKEN',
+        message: 'Token is expired or invalid.',
+        details: null
+      }
     });
   }
 }
 
-export function tenantContextMiddleware(
+// Alias for backwards compatibility
+export const authMiddleware = authenticate;
+
+/**
+ * enforceTenant (tenantContextMiddleware)
+ * Verifies that teamId is present and attaches tenant context to req.tenant.
+ * Ensures queries filter strictly by tenant.
+ */
+export function enforceTenant(
   req: AuthenticatedRequest,
   res: Response,
   next: NextFunction
 ): void {
   const user = req.user;
-  const teamId = (req.params.teamId as string) || (req.body.teamId as string) || user?.teamId || 'team-default-1';
-
   if (!user) {
     res.status(401).json({
       success: false,
-      error: { code: 'UNAUTHORIZED', message: 'Authentication required for tenant context.', details: null }
+      error: {
+        code: 'UNAUTHORIZED',
+        message: 'Authentication required for tenant context.',
+        details: null
+      }
     });
     return;
   }
 
-  const role: Role = user.role || 'STAFF';
+  const teamId = (req.params.teamId as string) || (req.body.teamId as string) || user.teamId || 'team-default-1';
+  const role: TypeRole = (user.role as TypeRole) || 'STAFF';
 
   req.tenant = {
     teamId,
@@ -56,13 +80,24 @@ export function tenantContextMiddleware(
   next();
 }
 
-export function requireRole(allowedRoles: Role[]) {
+// Alias for backwards compatibility
+export const tenantContextMiddleware = enforceTenant;
+
+/**
+ * requireRole
+ * Checks req.user.role (or req.tenant.role). Returns HTTP 403 Forbidden if unauthorized.
+ */
+export function requireRole(allowedRoles: (Role | TypeRole)[]) {
   return (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
-    const userRole = req.tenant?.role;
+    const userRole = (req.user?.role || req.tenant?.role) as Role;
     if (!userRole || !allowedRoles.includes(userRole)) {
       res.status(403).json({
         success: false,
-        error: { code: 'FORBIDDEN_INSUFFICIENT_ROLE', message: 'Insufficient role permissions for this operation.', details: null }
+        error: {
+          code: 'FORBIDDEN_INSUFFICIENT_ROLE',
+          message: 'Insufficient permissions.',
+          details: null
+        }
       });
       return;
     }

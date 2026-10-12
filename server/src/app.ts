@@ -8,7 +8,9 @@ import {
   loginHandler,
   refreshHandler,
   meHandler,
-  revokeAllHandler
+  logoutHandler,
+  logoutAllHandler,
+  logoutAllHandler as revokeAllHandler
 } from './controllers/auth.controller';
 import {
   listShiftsHandler,
@@ -48,8 +50,10 @@ app.get('/health', (req: Request, res: Response) => {
 app.post('/api/auth/register', registerHandler);
 app.post('/api/auth/login', loginHandler);
 app.post('/api/auth/refresh', refreshHandler);
-app.get('/api/auth/me', authMiddleware, meHandler);
+app.post('/api/auth/logout', logoutHandler);
+app.post('/api/auth/logout-all', authMiddleware, logoutAllHandler);
 app.post('/api/auth/revoke-all', authMiddleware, revokeAllHandler);
+app.get('/api/auth/me', authMiddleware, meHandler);
 
 // -------------------------------------------------------------
 // Core Shift Management Routes

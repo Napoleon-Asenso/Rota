@@ -16,16 +16,33 @@ import { useAppNavigation } from '../navigation';
  * - "Forgot password?" action
  * - Navigation to Dashboard upon authentication
  */
+import { authApi } from '../services/api';
+
 export function LoginScreen(): React.JSX.Element {
   const { colors } = useTheme();
   const navigation = useAppNavigation();
 
-  const [email, setEmail] = useState('emeka.okafor@example.com');
-  const [password, setPassword] = useState('password123');
+  const [email, setEmail] = useState('emeka@company.com');
+  const [password, setPassword] = useState('Password123!');
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const handleLogin = (): void => {
-    // Navigates to Screen 7 (Shift Calendar / Dashboard)
-    navigation.goToDashboard();
+  const handleLogin = async (): Promise<void> => {
+    try {
+      setIsLoading(true);
+      setErrorMessage(null);
+      await authApi.login(email.trim(), password);
+      navigation.goToDashboard();
+    } catch (err: unknown) {
+      const errorObj = err as { response?: { data?: { error?: { message?: string } } }; message?: string };
+      const msg =
+        errorObj.response?.data?.error?.message ||
+        errorObj.message ||
+        'Invalid email or password. Please try again.';
+      setErrorMessage(msg);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -112,11 +129,21 @@ export function LoginScreen(): React.JSX.Element {
           />
         </View>
 
+        {/* Error Notice */}
+        {errorMessage ? (
+          <View style={[styles.errorContainer, { backgroundColor: colors['error-container-color'] }]}>
+            <Text variant="sm" color={colors['error-color']} weight="medium">
+              {errorMessage}
+            </Text>
+          </View>
+        ) : null}
+
         {/* Primary Action Button */}
         <Button
-          title="Log In"
+          title={isLoading ? 'Logging in...' : 'Log In'}
           variant="primary"
           onPress={handleLogin}
+          loading={isLoading}
           style={styles.submitButton}
           accessibilityLabel="Log In"
           accessibilityHint="Logs in to your account and takes you to your shift calendar"
@@ -232,6 +259,11 @@ const styles = StyleSheet.create({
     minHeight: tokens.accessibility.minTouchTarget,
     justifyContent: 'center',
     paddingHorizontal: tokens.spacing[1]
+  },
+  errorContainer: {
+    padding: tokens.spacing[2],
+    borderRadius: tokens.borderRadius['radius-md'],
+    marginTop: tokens.spacing[1]
   },
   submitButton: {
     marginTop: tokens.spacing[2]

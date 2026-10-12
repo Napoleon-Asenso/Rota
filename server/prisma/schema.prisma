@@ -19,327 +19,241 @@ enum Role {
 }
 
 enum ShiftStatus {
-  DRAFT
-  PUBLISHED
+  SCHEDULED
+  CONFIRMED
   CANCELLED
-  COMPLETED
 }
 
 enum SwapStatus {
-  OPEN_FOR_CLAIM
-  PENDING_PEER_APPROVAL
-  PENDING_MANAGER_APPROVAL
+  PENDING
   APPROVED
   REJECTED
   CANCELLED
 }
 
-enum SubscriptionPlan {
+enum PlanTier {
   STARTER
   TEAM
   BUSINESS
 }
 
-enum SubscriptionStatus {
-  TRIALING
-  ACTIVE
-  PAST_DUE
-  CANCELLED
-  UNPAID
-}
-
-enum LedgerEntryType {
-  BASE_FEE
-  SEAT_ADDITION_PRORATED
-  PLAN_UPGRADE_PRORATED
-  MONTHLY_RENEWAL
-  REFUND
-  CREDIT_ADJUSTMENT
-}
-
-enum LedgerDirection {
-  DEBIT
+enum LedgerType {
+  CHARGE
   CREDIT
-}
-
-enum ActivityAction {
-  SHIFT_CREATED
-  SHIFT_PUBLISHED
-  SHIFT_UPDATED
-  SHIFT_CANCELLED
-  SWAP_REQUESTED
-  SWAP_PEER_ACCEPTED
-  SWAP_PEER_REJECTED
-  SWAP_CLAIMED
-  SWAP_MANAGER_APPROVED
-  SWAP_MANAGER_DENIED
-  MEMBER_INVITED
-  MEMBER_JOINED
-  MEMBER_REMOVED
-  SUBSCRIPTION_UPDATED
-}
-
-enum DevicePlatform {
-  ANDROID
-  IOS
+  REFUND
 }
 
 // ---------------------------------------------------------
-// CORE MULTI-TENANCY & IDENTITY (CENTRAL DIRECTORY)
+// CORE MULTI-TENANT & IDENTITY MODELS
 // ---------------------------------------------------------
-
-model Team {
-  id                 String               @id @default(uuid()) @db.Uuid
-  name               String               @db.VarChar(100)
-  slug               String               @unique @db.VarChar(100)
-  timezone           String               @default("UTC") @db.VarChar(50)
-  createdAt          DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt          DateTime             @updatedAt @map("updated_at") @db.Timestamptz(6)
-
-  memberships        TeamMembership[]
-  shifts             Shift[]
-  swapRequests       ShiftSwapRequest[]
-  activityFeed       ActivityFeedItem[]
-  subscription       Subscription?
-  subscriptionLedger SubscriptionLedger[]
-  invitations        TeamInvitation[]
-
-  @@map("teams")
-}
 
 model User {
-  id                 String             @id @default(uuid()) @db.Uuid
-  email              String             @unique @db.VarChar(255)
-  passwordHash       String             @map("password_hash") @db.VarChar(255)
-  fullName           String             @map("full_name") @db.VarChar(100)
-  phoneNumber        String?            @map("phone_number") @db.VarChar(30)
-  timezone           String             @default("UTC") @db.VarChar(50)
-  quietHoursEnabled  Boolean            @default(true) @map("quiet_hours_enabled")
-  quietHoursStart    String             @default("22:00") @map("quiet_hours_start") @db.VarChar(5) // HH:mm
-  quietHoursEnd      String             @default("07:00") @map("quiet_hours_end") @db.VarChar(5)   // HH:mm
-  tokenVersion       Int                @default(1) @map("token_version")
-  createdAt          DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt          DateTime           @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id                 String             @id @default(uuid())
+  email              String             @unique
+  passwordHash       String
+  fullName           String
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
 
-  memberships        TeamMembership[]
-  assignedShifts     Shift[]            @relation("AssignedStaffShifts")
-  createdShifts      Shift[]            @relation("ShiftCreatedBy")
-  initiatedSwaps     ShiftSwapRequest[] @relation("SwapInitiator")
-  targetSwaps        ShiftSwapRequest[] @relation("SwapTargetStaff")
-  reviewedSwaps      ShiftSwapRequest[] @relation("SwapReviewer")
-  activityFeedEvents ActivityFeedItem[]
+  memberships        Membership[]
+  shifts             Shift[]
+  sentSwapRequests   ShiftSwapRequest[] @relation("SwapRequester")
+  targetedSwaps      ShiftSwapRequest[] @relation("SwapTarget")
+  activities         Activity[]
   refreshTokens      RefreshToken[]
-  deviceTokens       DevicePushToken[]
+  deviceTokens       DeviceToken[]
+  userSettings       UserSettings?
 
   @@map("users")
 }
 
-model TeamMembership {
-  id         String   @id @default(uuid()) @db.Uuid
-  teamId     String   @map("team_id") @db.Uuid
-  userId     String   @map("user_id") @db.Uuid
-  role       Role     @default(STAFF)
-  isActive   Boolean  @default(true) @map("is_active")
-  joinedAt   DateTime @default(now()) @map("joined_at") @db.Timestamptz(6)
-  updatedAt  DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+model Team {
+  id                 String             @id @default(uuid())
+  name               String
+  industry           String
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
 
-  team       Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  memberships        Membership[]
+  shifts             Shift[]
+  activities         Activity[]
+  subscription       Subscription?
+  ledgerEntries      LedgerEntry[]
 
-  @@unique([teamId, userId])
-  @@index([teamId, role, isActive])
-  @@map("team_memberships")
+  @@map("teams")
 }
 
-model TeamInvitation {
-  id         String    @id @default(uuid()) @db.Uuid
-  teamId     String    @map("team_id") @db.Uuid
-  email      String    @db.VarChar(255)
-  role       Role      @default(STAFF)
-  tokenHash  String    @unique @map("token_hash") @db.VarChar(255)
-  expiresAt  DateTime  @map("expires_at") @db.Timestamptz(6)
-  acceptedAt DateTime? @map("accepted_at") @db.Timestamptz(6)
-  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+model Membership {
+  id                 String             @id @default(uuid())
+  userId             String
+  teamId             String
+  role               Role
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
 
-  team       Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user               User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team               Team               @relation(fields: [teamId], references: [id], onDelete: Cascade)
 
-  @@index([teamId, email])
-  @@map("team_invitations")
+  @@unique([userId, teamId])
+  @@index([teamId])
+  @@index([userId])
+  @@map("memberships")
 }
 
 // ---------------------------------------------------------
-// AUTHENTICATION & SECURITY TOKENS
+// SHIFTS & SWAP MANAGEMENT
+// ---------------------------------------------------------
+
+model Shift {
+  id                 String             @id @default(uuid())
+  teamId             String
+  userId             String
+  roleTitle          String
+  location           String
+  startTime          DateTime
+  endTime            DateTime
+  status             ShiftStatus        @default(SCHEDULED)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  team               Team               @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user               User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  swapRequests       ShiftSwapRequest[]
+
+  @@index([teamId, startTime])
+  @@index([userId])
+  @@map("shifts")
+}
+
+model ShiftSwapRequest {
+  id                 String             @id @default(uuid())
+  shiftId            String
+  requesterId        String
+  targetUserId       String?
+  reason             String             @db.Text
+  status             SwapStatus         @default(PENDING)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  shift              Shift              @relation(fields: [shiftId], references: [id], onDelete: Cascade)
+  requester          User               @relation("SwapRequester", fields: [requesterId], references: [id], onDelete: Cascade)
+  targetUser         User?              @relation("SwapTarget", fields: [targetUserId], references: [id], onDelete: SetNull)
+
+  @@index([shiftId])
+  @@index([requesterId])
+  @@index([targetUserId])
+  @@map("shift_swap_requests")
+}
+
+// ---------------------------------------------------------
+// ACTIVITY FEED (HIGH PERFORMANCE COMPOSITE CURSOR INDEX)
+// ---------------------------------------------------------
+
+model Activity {
+  id                 String             @id @default(uuid())
+  teamId             String
+  actorId            String
+  type               String
+  description        String
+  metadata           Json               @default("{}")
+  createdAt          DateTime           @default(now())
+
+  team               Team               @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  actor              User               @relation(fields: [actorId], references: [id], onDelete: Cascade)
+
+  @@index([teamId, createdAt(sort: Desc), id(sort: Desc)])
+  @@index([actorId])
+  @@map("activities")
+}
+
+// ---------------------------------------------------------
+// BILLING, SUBSCRIPTIONS & FINANCIAL LEDGER
+// ---------------------------------------------------------
+
+model Subscription {
+  id                 String             @id @default(uuid())
+  teamId             String             @unique
+  tier               PlanTier           @default(STARTER)
+  seatCount          Int                @default(5)
+  status             String             @default("active") // active | past_due
+  currentPeriodStart DateTime
+  currentPeriodEnd   DateTime
+  gracePeriodEnd     DateTime?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  team               Team               @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@map("subscriptions")
+}
+
+model LedgerEntry {
+  id                 String             @id @default(uuid())
+  teamId             String
+  type               LedgerType
+  amountCents        Int
+  balanceAfterCents  Int
+  description        String
+  idempotencyKey     String             @unique
+  createdAt          DateTime           @default(now())
+
+  team               Team               @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  // Rule: Directional append-only ledger; no update or delete operations allowed.
+  @@index([teamId, createdAt(sort: Desc)])
+  @@map("ledger_entries")
+}
+
+// ---------------------------------------------------------
+// USER PREFERENCES & NOTIFICATION SETTINGS
+// ---------------------------------------------------------
+
+model UserSettings {
+  id                 String             @id @default(uuid())
+  userId             String             @unique
+  quietHoursStart    String             @default("22:00")
+  quietHoursEnd      String             @default("06:00")
+  timezone           String             @default("Africa/Lagos")
+  pushShiftChanges   Boolean            @default(true)
+  pushSwapRequests   Boolean            @default(true)
+  pushApprovals      Boolean            @default(true)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  user               User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_settings")
+}
+
+// ---------------------------------------------------------
+// SECURITY, TOKENS & SESSIONS
 // ---------------------------------------------------------
 
 model RefreshToken {
-  id          String   @id @default(uuid()) @db.Uuid
-  userId      String   @map("user_id") @db.Uuid
-  tokenHash   String   @unique @map("token_hash") @db.VarChar(255)
-  familyId    String   @map("family_id") @db.Uuid
-  isRevoked   Boolean  @default(false) @map("is_revoked")
-  expiresAt   DateTime @map("expires_at") @db.Timestamptz(6)
-  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  id                 String             @id @default(uuid())
+  userId             String
+  tokenHash          String             @unique
+  isRevoked          Boolean            @default(false)
+  familyId           String
+  expiresAt          DateTime
+  createdAt          DateTime           @default(now())
 
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user               User               @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, familyId])
   @@map("refresh_tokens")
 }
 
-model DevicePushToken {
-  id          String         @id @default(uuid()) @db.Uuid
-  userId      String         @map("user_id") @db.Uuid
-  pushToken   String         @unique @map("push_token") @db.VarChar(255)
-  platform    DevicePlatform @default(ANDROID)
-  createdAt   DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt   DateTime       @updatedAt @map("updated_at") @db.Timestamptz(6)
+model DeviceToken {
+  id                 String             @id @default(uuid())
+  userId             String
+  token              String
+  platform           String             @default("android")
+  createdAt          DateTime           @default(now())
 
-  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user               User               @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@unique([userId, token])
   @@index([userId])
-  @@map("device_push_tokens")
-}
-
-model IdempotencyKey {
-  id           String   @id @default(uuid()) @db.Uuid
-  teamId       String   @map("team_id") @db.Uuid
-  key          String   @db.VarChar(255)
-  responseCode Int      @map("response_code")
-  responseBody Json     @map("response_body")
-  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  expiresAt    DateTime @map("expires_at") @db.Timestamptz(6)
-
-  @@unique([teamId, key])
-  @@index([expiresAt])
-  @@map("idempotency_keys")
-}
-
-// ---------------------------------------------------------
-// SHIFTS & SWAP MANAGEMENT (SHARDED)
-// ---------------------------------------------------------
-
-model Shift {
-  id            String      @id @default(uuid()) @db.Uuid
-  teamId        String      @map("team_id") @db.Uuid
-  assignedToId  String?     @map("assigned_to_id") @db.Uuid
-  createdById   String      @map("created_by_id") @db.Uuid
-  roleTitle     String      @map("role_title") @db.VarChar(50)
-  startTime     DateTime    @map("start_time") @db.Timestamptz(6)
-  endTime       DateTime    @map("end_time") @db.Timestamptz(6)
-  status        ShiftStatus @default(DRAFT)
-  notes         String?     @db.Text
-  createdAt     DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt     DateTime    @updatedAt @map("updated_at") @db.Timestamptz(6)
-
-  team          Team        @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  assignedTo    User?       @relation("AssignedStaffShifts", fields: [assignedToId], references: [id], onDelete: SetNull)
-  createdBy     User        @relation("ShiftCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
-
-  originSwaps   ShiftSwapRequest[] @relation("SourceShift")
-  targetSwaps   ShiftSwapRequest[] @relation("TargetShift")
-
-  @@index([teamId, startTime, endTime])
-  @@index([teamId, assignedToId, startTime, endTime])
-  @@index([teamId, status, startTime])
-  @@map("shifts")
-}
-
-model ShiftSwapRequest {
-  id               String     @id @default(uuid()) @db.Uuid
-  teamId           String     @map("team_id") @db.Uuid
-  sourceShiftId    String     @map("source_shift_id") @db.Uuid
-  targetShiftId    String?    @map("target_shift_id") @db.Uuid
-  initiatorUserId  String     @map("initiator_user_id") @db.Uuid
-  targetUserId     String?    @map("target_user_id") @db.Uuid
-  reviewerUserId   String?    @map("reviewer_user_id") @db.Uuid
-  status           SwapStatus @default(PENDING_PEER_APPROVAL)
-  rejectionReason  String?    @map("rejection_reason") @db.VarChar(255)
-  createdAt        DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt        DateTime   @updatedAt @map("updated_at") @db.Timestamptz(6)
-
-  team             Team       @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  sourceShift      Shift      @relation("SourceShift", fields: [sourceShiftId], references: [id], onDelete: Cascade)
-  targetShift      Shift?     @relation("TargetShift", fields: [targetShiftId], references: [id], onDelete: SetNull)
-  initiator        User       @relation("SwapInitiator", fields: [initiatorUserId], references: [id], onDelete: Cascade)
-  targetStaff      User?      @relation("SwapTargetStaff", fields: [targetUserId], references: [id], onDelete: SetNull)
-  reviewer         User?      @relation("SwapReviewer", fields: [reviewerUserId], references: [id], onDelete: SetNull)
-
-  @@index([teamId, status, createdAt])
-  @@index([teamId, initiatorUserId])
-  @@index([teamId, targetUserId])
-  @@map("shift_swap_requests")
-}
-
-// ---------------------------------------------------------
-// ACTIVITY FEED (HIGH PERFORMANCE COMPOSITE INDEX)
-// ---------------------------------------------------------
-
-model ActivityFeedItem {
-  id         String         @id @default(uuid()) @db.Uuid
-  teamId     String         @map("team_id") @db.Uuid
-  actorId    String         @map("actor_id") @db.Uuid
-  action     ActivityAction
-  entityId   String         @map("entity_id") @db.Uuid
-  entityType String         @map("entity_type") @db.VarChar(50)
-  metadata   Json           @default("{}")
-  createdAt  DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
-
-  team       Team           @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  actor      User           @relation(fields: [actorId], references: [id], onDelete: Cascade)
-
-  @@index([teamId, createdAt(sort: Desc), id(sort: Desc)])
-  @@unique([createdAt, id])
-  @@map("activity_feed_items")
-}
-
-// ---------------------------------------------------------
-// BILLING, SEATS & FINANCIAL LEDGER (DIRECTIONAL ACCOUNTING)
-// ---------------------------------------------------------
-
-model Subscription {
-  id                   String             @id @default(uuid()) @db.Uuid
-  teamId               String             @unique @map("team_id") @db.Uuid
-  plan                 SubscriptionPlan   @default(STARTER)
-  status               SubscriptionStatus @default(TRIALING)
-  baseSeats            Int                @default(5) @map("base_seats")
-  extraSeats           Int                @default(0) @map("extra_seats")
-  totalSeats           Int                @default(5) @map("total_seats")
-  basePriceCents       Int                @default(2000) @map("base_price_cents")
-  extraSeatPriceCents  Int                @default(0) @map("extra_seat_price_cents")
-  currentPeriodStart   DateTime           @map("current_period_start") @db.Timestamptz(6)
-  currentPeriodEnd     DateTime           @map("current_period_end") @db.Timestamptz(6)
-  flutterwaveSubId     String?            @map("flutterwave_sub_id") @db.VarChar(100)
-  flutterwaveCustToken String?            @map("flutterwave_cust_token") @db.VarChar(255)
-  cancelledAt          DateTime?          @map("cancelled_at") @db.Timestamptz(6)
-  createdAt            DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt            DateTime           @updatedAt @map("updated_at") @db.Timestamptz(6)
-
-  team                 Team               @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  ledgerEntries        SubscriptionLedger[]
-
-  @@index([status, currentPeriodEnd])
-  @@map("subscriptions")
-}
-
-model SubscriptionLedger {
-  id                String          @id @default(uuid()) @db.Uuid
-  teamId            String          @map("team_id") @db.Uuid
-  subscriptionId    String          @map("subscription_id") @db.Uuid
-  entryType         LedgerEntryType @map("entry_type")
-  direction         LedgerDirection @default(DEBIT)
-  amountCents       Int             @map("amount_cents")
-  balanceAfterCents Int             @map("balance_after_cents")
-  currency          String          @default("USD") @db.VarChar(3)
-  periodStart       DateTime        @map("period_start") @db.Timestamptz(6)
-  periodEnd         DateTime        @map("period_end") @db.Timestamptz(6)
-  description       String          @db.VarChar(255)
-  flutterwaveTxRef  String?         @unique @map("flutterwave_tx_ref") @db.VarChar(100)
-  idempotencyKey    String?         @unique @map("idempotency_key") @db.VarChar(255)
-  createdAt         DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
-
-  team              Team            @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  subscription      Subscription    @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
-
-  @@index([teamId, createdAt(sort: Desc)])
-  @@map("subscription_ledgers")
+  @@map("device_tokens")
 }

@@ -8,6 +8,7 @@ import { Badge } from '../components/Badge';
 import { BottomTabBar } from '../components/BottomTabBar';
 import { PushNotificationModal } from '../components/PushNotificationModal';
 import { useAppStore } from '../storage/store';
+import { authApi } from '../services/api';
 
 /**
  * Clean Geometric Vector Icons for Settings Menu Rows
@@ -197,6 +198,16 @@ export function UserSettingsScreen(): React.JSX.Element {
   const { colors, toggleTheme, mode } = useTheme();
   const setCurrentScreenId = useAppStore((s) => s.setCurrentScreenId);
   const [showPushBanner, setShowPushBanner] = useState<boolean>(false);
+
+  const handleLogout = async (): Promise<void> => {
+    try {
+      await authApi.logout();
+    } catch (err) {
+      console.warn('Logout error:', err);
+    } finally {
+      setCurrentScreenId(1); // Return to Welcome Screen
+    }
+  };
 
   return (
     <View style={[styles.root, { backgroundColor: colors['background-color'] }]}>
@@ -395,7 +406,7 @@ export function UserSettingsScreen(): React.JSX.Element {
 
         {/* Destructive Action: Log Out */}
         <Pressable
-          onPress={() => setCurrentScreenId(1)} // Return to Welcome Screen
+          onPress={handleLogout}
           accessibilityRole="button"
           accessibilityLabel="Log Out"
           accessibilityHint="Logs out of your Rota account and returns to splash screen"

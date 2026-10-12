@@ -15,17 +15,34 @@ import { useAppNavigation } from '../navigation';
  * - Accessible Input fields with password visibility toggle
  * - Navigation to Invite Team Members on submission
  */
+import { authApi } from '../services/api';
+
 export function SignUpScreen(): React.JSX.Element {
   const { colors } = useTheme();
   const navigation = useAppNavigation();
 
   const [fullName, setFullName] = useState('Emeka Okafor');
-  const [email, setEmail] = useState('emeka.okafor@example.com');
-  const [password, setPassword] = useState('password123');
+  const [email, setEmail] = useState('emeka@company.com');
+  const [password, setPassword] = useState('Password123!');
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const handleSignUp = (): void => {
-    // Navigates to Screen 4 (Invite Team Members)
-    navigation.goToInviteMembers();
+  const handleSignUp = async (): Promise<void> => {
+    try {
+      setIsLoading(true);
+      setErrorMessage(null);
+      await authApi.register(fullName.trim(), email.trim(), password);
+      navigation.goToInviteMembers();
+    } catch (err: unknown) {
+      const errorObj = err as { response?: { data?: { error?: { message?: string } } }; message?: string };
+      const msg =
+        errorObj.response?.data?.error?.message ||
+        errorObj.message ||
+        'Registration failed. Please check your information.';
+      setErrorMessage(msg);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -105,11 +122,21 @@ export function SignUpScreen(): React.JSX.Element {
           placeholder="••••••••"
         />
 
+        {/* Error Notice */}
+        {errorMessage ? (
+          <View style={[styles.errorContainer, { backgroundColor: colors['error-container-color'] }]}>
+            <Text variant="sm" color={colors['error-color']} weight="medium">
+              {errorMessage}
+            </Text>
+          </View>
+        ) : null}
+
         {/* Primary Action Button */}
         <Button
-          title="Sign Up"
+          title={isLoading ? 'Creating account...' : 'Sign Up'}
           variant="primary"
           onPress={handleSignUp}
+          loading={isLoading}
           style={styles.submitButton}
           accessibilityLabel="Sign Up"
           accessibilityHint="Creates your account and navigates to invite team members"
@@ -221,6 +248,11 @@ const styles = StyleSheet.create({
   },
   form: {
     gap: tokens.spacing[4]
+  },
+  errorContainer: {
+    padding: tokens.spacing[2],
+    borderRadius: tokens.borderRadius['radius-md'],
+    marginTop: tokens.spacing[1]
   },
   submitButton: {
     marginTop: tokens.spacing[2]
