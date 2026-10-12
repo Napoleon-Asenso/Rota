@@ -8,24 +8,23 @@ export async function registerForPushNotificationsAsync(): Promise<string | null
   let token: string | null = null;
 
   try {
-    // Attempt dynamic import of expo-notifications if available
-    const Notifications = await import('expo-notifications');
-    
-    const { status: existingStatus } = await Notifications.getPermissionsAsync();
-    let finalStatus = existingStatus;
+    // Attempt optional require of expo-notifications if available in runtime environment
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const Notifications: any = typeof require !== 'undefined' ? (require as any)('expo-notifications') : null;
+    if (Notifications && typeof Notifications.getPermissionsAsync === 'function') {
+      const { status: existingStatus } = await Notifications.getPermissionsAsync();
+      let finalStatus = existingStatus;
 
-    if (existingStatus !== 'granted') {
-      const { status } = await Notifications.requestPermissionsAsync();
-      finalStatus = status;
+      if (existingStatus !== 'granted' && typeof Notifications.requestPermissionsAsync === 'function') {
+        const { status } = await Notifications.requestPermissionsAsync();
+        finalStatus = status;
+      }
+
+      if (finalStatus === 'granted' && typeof Notifications.getExpoPushTokenAsync === 'function') {
+        const pushTokenData = await Notifications.getExpoPushTokenAsync();
+        token = pushTokenData?.data || null;
+      }
     }
-
-    if (finalStatus !== 'granted') {
-      console.log('[Push] Notification permissions not granted');
-      return null;
-    }
-
-    const pushTokenData = await Notifications.getExpoPushTokenAsync();
-    token = pushTokenData.data;
   } catch (err) {
     // Safe fallback for web, simulator, or testing environments
     console.log('[Push] Running in dev / web fallback mode');

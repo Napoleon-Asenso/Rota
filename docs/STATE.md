@@ -108,10 +108,60 @@ Located at `app/stores/shiftStore.ts`:
 
 ---
 
-### 6. Architectural Guarantees & Constraints Checklist
+### 7. Notification State & Background Queue Architecture (Milestone 10)
+
+#### 7.1. BullMQ Asynchronous Pipeline
+```
+Trigger Event (Shift change, Swap, Billing)
+                    │
+                    ▼
+        enqueueNotification()
+                    │
+                    ▼
+      Redis Queue: 'notifications' (BullMQ)
+                    │
+                    ▼
+         notificationWorker
+                    │
+    ┌───────────────┴────────────────┐
+    ▼                                ▼
+[Step A] User Settings Check   [Step B] Quiet Hours (date-fns-tz)
+  • pushShiftChanges              • 22:00 -> 06:00 midnight-spanning
+  • pushSwapRequests              • isUrgent bypasses delay
+  • pushApprovals                 • Reschedule with delayMs
+    │                                │
+    └───────────────┬────────────────┘
+                    ▼
+          [Step C] Dispatch via Expo Push API
+                    │
+                    ▼
+          [Step D] Ticket Error Inspection
+            • Status === 'error' & DeviceNotRegistered
+            • Immediate database pruning from DeviceToken table
+```
+
+#### 7.2. Client-Server Settings Synchronization
+- **Server Endpoints**:
+  - `GET /api/settings`: Fetches active user preferences, quiet hours window, and server timestamp.
+  - `PATCH /api/settings`: Updates quiet hours and notification toggles; stamps `updatedAt` for conflict resolution.
+  - `POST /api/devices/token`: Idempotently registers device push tokens by `(userId, token)`.
+- **Client Integration (`useAppStore` & `PushNotificationSettingsScreen`)**:
+  - Optimistic UI updates with automatic reversion on network errors.
+  - Device token registration on app launch via `registerForPushNotificationsAsync`.
+  - Notification response listener routing:
+    - `data.shiftId` $\rightarrow$ Screen 7 (`ShiftCalendar`)
+    - `data.swapId` $\rightarrow$ Screen 18 (`OptimisticUpdate` / `SwapRequests`)
+
+---
+
+### 8. Architectural Guarantees & Constraints Checklist
 
 - [x] **Zero SQL OFFSET**: Activity pagination strictly uses index scans on `(team_id, created_at DESC, id DESC)`.
 - [x] **Integer-Cent Monetary State**: All billing calculations on backend use whole minor currency units (cents).
 - [x] **Strict Tenant Scoping**: Every server query verifies `req.user.teamId`.
 - [x] **Optimistic Mutation Rollbacks**: Failed mutations always restore prior cache snapshot.
 - [x] **Secure Token Storage**: Tokens encrypted via `expo-secure-store`.
+- [x] **Zero Synchronous Push in HTTP Handlers**: All push notifications processed asynchronously via BullMQ.
+- [x] **Timezone-Aware Midnight-Spanning Quiet Hours**: Exact millisecond delays computed with `date-fns-tz`.
+- [x] **Automatic Dead Token Pruning**: `DeviceNotRegistered` errors automatically purge expired push tokens.
+

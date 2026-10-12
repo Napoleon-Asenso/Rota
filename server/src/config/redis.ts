@@ -19,3 +19,6 @@ redisConnection.on('error', (err) => {
     console.warn('[Redis] Connection warning:', err.message);
   }
 });
+
+export const redis = redisConnection;
+

@@ -67,6 +67,9 @@ const SCREENS = [
   { id: 19, title: 'Screen 19: Swap Review & Approval', component: SwapDetailReviewScreen }
 ];
 
+import { setupNotificationListeners } from './src/navigation/linking';
+import { registerForPushNotificationsAsync } from './src/services/notifications';
+
 function MainContent(): React.JSX.Element {
   const { colors } = useTheme();
   const currentScreenId = useAppStore((s) => s.currentScreenId);
@@ -83,6 +86,17 @@ function MainContent(): React.JSX.Element {
       document.body.style.backgroundColor = screenBg;
     }
   }, [screenBg]);
+
+  // Milestone 10: Push Token Registration & Deep-Linking Response Listener
+  React.useEffect(() => {
+    const cleanup = setupNotificationListeners();
+    registerForPushNotificationsAsync().catch((err) => {
+      console.log('[Push] Push registration handled gracefully:', err?.message);
+    });
+    return () => {
+      cleanup?.();
+    };
+  }, []);
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: screenBg }]}>

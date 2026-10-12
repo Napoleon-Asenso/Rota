@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, ViewStyle, ViewProps } from 'react-native';
+import { View, StyleSheet, ViewStyle, StyleProp, ViewProps } from 'react-native';
 import { useTheme } from '../theme/ThemeContext';
 import { tokens } from '../theme/tokens';
 
@@ -10,7 +10,7 @@ type CardAccessibilityProps = Pick<
 
 export interface CardProps extends CardAccessibilityProps {
   children: React.ReactNode;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
   variant?: 'elevated' | 'outlined' | 'flat';
 }
 

@@ -2,10 +2,16 @@ require('dotenv').config();
 require('ts-node').register({ transpileOnly: true });
 
 const { runBillingUnitTests } = require('./billing.test.ts');
+const { runNotificationUnitTests } = require('./notifications.test.ts');
 
-runBillingUnitTests()
+async function main() {
+  await runBillingUnitTests();
+  await runNotificationUnitTests();
+  console.log('[Runner] All Milestone 9 and Milestone 10 tests passed with 100% success.');
+}
+
+main()
   .then(() => {
-    console.log('[Runner] All Milestone 9 tests completed successfully.');
     process.exit(0);
   })
   .catch((err) => {

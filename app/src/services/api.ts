@@ -171,3 +171,42 @@ export const authApi = {
     return res.data;
   }
 };
+
+// User & Notification Settings API
+export interface UserSettingsResponse {
+  quietHoursStart: string;
+  quietHoursEnd: string;
+  timezone: string;
+  pushShiftChanges: boolean;
+  pushSwapRequests: boolean;
+  pushApprovals: boolean;
+  updatedAt: string;
+  serverTimestamp: string;
+}
+
+export const settingsApi = {
+  async getSettings(): Promise<UserSettingsResponse> {
+    const res = await apiClient.get<{ success: boolean; data: UserSettingsResponse }>('/api/settings');
+    return res.data.data;
+  },
+
+  async updateSettings(settings: Partial<{
+    quietHoursStart: string;
+    quietHoursEnd: string;
+    timezone: string;
+    pushShiftChanges: boolean;
+    pushSwapRequests: boolean;
+    pushApprovals: boolean;
+  }>): Promise<UserSettingsResponse> {
+    const res = await apiClient.patch<{ success: boolean; data: UserSettingsResponse }>('/api/settings', settings);
+    return res.data.data;
+  },
+
+  async registerDeviceToken(token: string, platform?: 'android' | 'ios' | 'web'): Promise<void> {
+    await apiClient.post('/api/devices/token', {
+      token,
+      platform: platform || 'android'
+    });
+  }
+};
+

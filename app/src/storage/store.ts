@@ -38,7 +38,23 @@ interface AppState {
     approvals: boolean;
     teamMessages: boolean;
   };
+  quietHours: {
+    start: string;
+    end: string;
+    timezone: string;
+  };
   setNotificationToggle: (key: 'shiftChanges' | 'swapRequests' | 'approvals' | 'teamMessages', val: boolean) => void;
+  setQuietHours: (start: string, end: string) => void;
+  setTimezone: (tz: string) => void;
+  setAllSettings: (settings: {
+    shiftChanges?: boolean;
+    swapRequests?: boolean;
+    approvals?: boolean;
+    teamMessages?: boolean;
+    quietHoursStart?: string;
+    quietHoursEnd?: string;
+    timezone?: string;
+  }) => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -80,8 +96,35 @@ export const useAppStore = create<AppState>((set) => ({
     approvals: true,
     teamMessages: false
   },
+  quietHours: {
+    start: '22:00',
+    end: '06:00',
+    timezone: 'Africa/Lagos'
+  },
   setNotificationToggle: (key, val) =>
     set((state) => ({
       notificationToggles: { ...state.notificationToggles, [key]: val }
+    })),
+  setQuietHours: (start, end) =>
+    set((state) => ({
+      quietHours: { ...state.quietHours, start, end }
+    })),
+  setTimezone: (tz) =>
+    set((state) => ({
+      quietHours: { ...state.quietHours, timezone: tz }
+    })),
+  setAllSettings: (settings) =>
+    set((state) => ({
+      notificationToggles: {
+        shiftChanges: settings.shiftChanges ?? state.notificationToggles.shiftChanges,
+        swapRequests: settings.swapRequests ?? state.notificationToggles.swapRequests,
+        approvals: settings.approvals ?? state.notificationToggles.approvals,
+        teamMessages: settings.teamMessages ?? state.notificationToggles.teamMessages
+      },
+      quietHours: {
+        start: settings.quietHoursStart ?? state.quietHours.start,
+        end: settings.quietHoursEnd ?? state.quietHours.end,
+        timezone: settings.timezone ?? state.quietHours.timezone
+      }
     }))
 }));

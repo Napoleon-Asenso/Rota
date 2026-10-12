@@ -7,6 +7,7 @@ import { Card } from '../components/Card';
 import { Button } from '../components/Button';
 import { PushNotificationModal } from '../components/PushNotificationModal';
 import { useAppStore } from '../storage/store';
+import { settingsApi } from '../services/api';
 
 /**
  * Geometric Vector Bell Hero Icon
@@ -81,8 +82,63 @@ const bellStyles = StyleSheet.create({
  */
 export function PushNotificationSettingsScreen(): React.JSX.Element {
   const { colors } = useTheme();
-  const { notificationToggles, setNotificationToggle, setCurrentScreenId } = useAppStore();
+  const { notificationToggles, quietHours, setNotificationToggle, setAllSettings, setCurrentScreenId } = useAppStore();
   const [showPushBanner, setShowPushBanner] = useState<boolean>(false);
+  const [syncStatus, setSyncStatus] = useState<string | null>(null);
+
+  // Sync settings with server on screen mount
+  React.useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const remote = await settingsApi.getSettings();
+        if (mounted && remote) {
+          setAllSettings({
+            shiftChanges: remote.pushShiftChanges,
+            swapRequests: remote.pushSwapRequests,
+            approvals: remote.pushApprovals,
+            quietHoursStart: remote.quietHoursStart,
+            quietHoursEnd: remote.quietHoursEnd,
+            timezone: remote.timezone
+          });
+        }
+      } catch (err) {
+        console.log('[Settings] Operating in local offline cache mode');
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, [setAllSettings]);
+
+  const handleToggle = async (
+    key: 'shiftChanges' | 'swapRequests' | 'approvals' | 'teamMessages',
+    nextVal: boolean
+  ): Promise<void> => {
+    const prevVal = notificationToggles[key];
+    // 1. Optimistic local update
+    setNotificationToggle(key, nextVal);
+    setSyncStatus('Saving changes...');
+
+    try {
+      const patchData: Record<string, boolean> = {};
+      if (key === 'shiftChanges') patchData.pushShiftChanges = nextVal;
+      if (key === 'swapRequests') patchData.pushSwapRequests = nextVal;
+      if (key === 'approvals') patchData.pushApprovals = nextVal;
+
+      if (Object.keys(patchData).length > 0) {
+        await settingsApi.updateSettings(patchData);
+      }
+      setSyncStatus('Saved to server');
+      setTimeout(() => setSyncStatus(null), 2500);
+    } catch (err) {
+      console.warn('[Settings] Failed to sync setting with backend, reverting:', err);
+      // Revert on error
+      setNotificationToggle(key, prevVal);
+      setSyncStatus('Sync failed — reverted');
+      setTimeout(() => setSyncStatus(null), 3000);
+    }
+  };
 
   return (
     <View style={[styles.root, { backgroundColor: colors['background-color'] }]}>
@@ -153,6 +209,11 @@ export function PushNotificationSettingsScreen(): React.JSX.Element {
           >
             Get notified about shift changes, swap requests and approvals.
           </Text>
+          {syncStatus && (
+            <Text variant="xs" color={colors['primary-color']} style={{ marginTop: 6 }}>
+              {syncStatus}
+            </Text>
+          )}
         </View>
 
         {/* Toggle List Card */}
@@ -169,7 +230,7 @@ export function PushNotificationSettingsScreen(): React.JSX.Element {
             </View>
             <Switch
               value={notificationToggles.shiftChanges}
-              onValueChange={(val) => setNotificationToggle('shiftChanges', val)}
+              onValueChange={(val) => handleToggle('shiftChanges', val)}
               accessibilityLabel="Shift changes notifications"
               accessibilityHint="Toggles alerts when shifts are added, edited, or cancelled"
               thumbColor={notificationToggles.shiftChanges ? colors['primary-color'] : colors['surface-variant-color']}
@@ -194,7 +255,7 @@ export function PushNotificationSettingsScreen(): React.JSX.Element {
             </View>
             <Switch
               value={notificationToggles.swapRequests}
-              onValueChange={(val) => setNotificationToggle('swapRequests', val)}
+              onValueChange={(val) => handleToggle('swapRequests', val)}
               accessibilityLabel="Swap requests notifications"
               accessibilityHint="Toggles incoming swap invitations from team members"
               thumbColor={notificationToggles.swapRequests ? colors['primary-color'] : colors['surface-variant-color']}
@@ -219,7 +280,7 @@ export function PushNotificationSettingsScreen(): React.JSX.Element {
             </View>
             <Switch
               value={notificationToggles.approvals}
-              onValueChange={(val) => setNotificationToggle('approvals', val)}
+              onValueChange={(val) => handleToggle('approvals', val)}
               accessibilityLabel="Approvals notifications"
               accessibilityHint="Toggles manager reviews and final shift reassignments"
               thumbColor={notificationToggles.approvals ? colors['primary-color'] : colors['surface-variant-color']}
@@ -244,7 +305,7 @@ export function PushNotificationSettingsScreen(): React.JSX.Element {
             </View>
             <Switch
               value={notificationToggles.teamMessages}
-              onValueChange={(val) => setNotificationToggle('teamMessages', val)}
+              onValueChange={(val) => handleToggle('teamMessages', val)}
               accessibilityLabel="Team messages notifications"
               accessibilityHint="Toggles general broadcast announcements"
               thumbColor={notificationToggles.teamMessages ? colors['primary-color'] : colors['surface-variant-color']}
@@ -253,6 +314,32 @@ export function PushNotificationSettingsScreen(): React.JSX.Element {
                 false: colors['surface-variant-color']
               }}
             />
+          </View>
+        </Card>
+
+        {/* Quiet Hours Policy Card */}
+        <Card style={[styles.card, { marginTop: tokens.spacing[4] }]}>
+          <View style={styles.toggleRow}>
+            <View style={styles.toggleText}>
+              <Text weight="semibold" variant="base" color={colors['on-surface-color']}>
+                Quiet Hours ({quietHours.start} – {quietHours.end})
+              </Text>
+              <Text variant="xs" color={colors['on-surface-variant-color']}>
+                Timezone: {quietHours.timezone}. Non-urgent notifications will be delayed until {quietHours.end} AM.
+              </Text>
+            </View>
+            <View
+              style={{
+                paddingHorizontal: 8,
+                paddingVertical: 4,
+                borderRadius: 6,
+                backgroundColor: colors['primary-container-color']
+              }}
+            >
+              <Text variant="xs" weight="bold" color={colors['primary-color']}>
+                ACTIVE
+              </Text>
+            </View>
           </View>
         </Card>
 
