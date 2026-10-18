@@ -13,6 +13,8 @@ import { RotaLogo } from '../components/RotaLogo';
 import { useAppStore } from '../storage/store';
 import { UserPlus, LogIn } from 'lucide-react-native';
 
+const SPLASH_BACKGROUND = '#070A10';
+
 /**
  * Splash & Welcome Onboarding Screen.
  * Replicates the motion choreography from the inspiration video:
@@ -227,7 +229,7 @@ export function WelcomeScreen(): React.JSX.Element {
         <View style={styles.middleHeroContainer}>
           {/* 1. Brand Logo */}
           <View style={styles.heroLogoWrapper}>
-            <RotaLogo size={56} />
+            <RotaLogo size={56} style={styles.flatLogo} />
           </View>
 
           {/* 2. Welcome to Rota (Equal font size for "Welcome to" and "Rota") */}
@@ -333,7 +335,7 @@ export function WelcomeScreen(): React.JSX.Element {
                 accessibilityElementsHidden
                 importantForAccessibility="no-hide-descendants"
               >
-                <RotaLogo size={52} />
+                <RotaLogo size={52} style={styles.flatLogo} />
               </Animated.View>
 
               {/* 2. Brand Wordmark Slides in horizontally */}
@@ -360,13 +362,19 @@ const styles = StyleSheet.create({
     flex: 1,
     height: '100%',
     width: '100%',
-    backgroundColor: '#070A10', // Deep cinematic background
+    backgroundColor: SPLASH_BACKGROUND,
     overflow: 'hidden'
+  },
+  flatLogo: {
+    elevation: 0,
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    shadowOffset: { width: 0, height: 0 }
   },
   // Phase 1: Splash Layer
   splashOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: '#070A10',
+    backgroundColor: SPLASH_BACKGROUND,
     zIndex: 10,
     justifyContent: 'center',
     alignItems: 'center'
@@ -396,6 +404,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: tokens.spacing[6],
     paddingTop: tokens.spacing[8],
     paddingBottom: tokens.spacing[8],
+    backgroundColor: SPLASH_BACKGROUND,
     overflow: 'hidden'
   },
 
@@ -537,7 +546,8 @@ const styles = StyleSheet.create({
   middleHeroContainer: {
     width: '100%',
     alignItems: 'center',
-    paddingHorizontal: tokens.spacing[4]
+    paddingHorizontal: tokens.spacing[4],
+    backgroundColor: 'transparent'
   },
   heroLogoWrapper: {
     marginBottom: tokens.spacing[3],
