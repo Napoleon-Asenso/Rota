@@ -7,69 +7,9 @@ import { Card } from '../components/Card';
 import { Badge } from '../components/Badge';
 import { useAppStore } from '../storage/store';
 import { useShiftStore } from '../stores/shiftStore';
+import { ArrowLeft, CloudOff } from 'lucide-react-native';
 
-/**
- * Geometric Vector Cloud-Slash Offline Icon
- */
-function CloudSlashIcon({ color }: { color: string }): React.JSX.Element {
-  return (
-    <View style={cloudStyles.container} accessibilityElementsHidden importantForAccessibility="no">
-      <View style={[cloudStyles.cloudTop, { backgroundColor: color }]} />
-      <View style={[cloudStyles.cloudLeft, { backgroundColor: color }]} />
-      <View style={[cloudStyles.cloudRight, { backgroundColor: color }]} />
-      <View style={[cloudStyles.cloudBottom, { backgroundColor: color }]} />
-      {/* Diagonal slash line */}
-      <View style={[cloudStyles.slash, { backgroundColor: color }]} />
-    </View>
-  );
-}
 
-const cloudStyles = StyleSheet.create({
-  container: {
-    width: 24,
-    height: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    position: 'relative'
-  },
-  cloudTop: {
-    position: 'absolute',
-    top: 2,
-    width: 10,
-    height: 10,
-    borderRadius: 5
-  },
-  cloudLeft: {
-    position: 'absolute',
-    left: 2,
-    bottom: 2,
-    width: 10,
-    height: 10,
-    borderRadius: 5
-  },
-  cloudRight: {
-    position: 'absolute',
-    right: 2,
-    bottom: 2,
-    width: 10,
-    height: 10,
-    borderRadius: 5
-  },
-  cloudBottom: {
-    position: 'absolute',
-    bottom: 2,
-    width: 16,
-    height: 6,
-    borderRadius: 3
-  },
-  slash: {
-    position: 'absolute',
-    width: 24,
-    height: 2,
-    borderRadius: 1,
-    transform: [{ rotate: '-45deg' }]
-  }
-});
 
 interface CachedShift {
   id: string;
@@ -130,10 +70,7 @@ export function OfflineViewingScreen(): React.JSX.Element {
             hitSlop={8}
             style={styles.backButton}
           >
-            <View style={styles.arrowIconWrapper} importantForAccessibility="no">
-              <View style={[styles.arrowShaft, { backgroundColor: colors['on-background-color'] }]} />
-              <View style={[styles.arrowHead, { borderColor: colors['on-background-color'] }]} />
-            </View>
+            <ArrowLeft size={24} color={colors['on-background-color']} />
           </Pressable>
         </View>
 
@@ -212,7 +149,7 @@ export function OfflineViewingScreen(): React.JSX.Element {
         accessibilityLiveRegion="polite"
         accessibilityLabel="Offline banner: You're offline. Showing cached data"
       >
-        <CloudSlashIcon color={colors['primary-color']} />
+        <CloudOff size={22} color={colors['primary-color']} />
         <Text
           weight="medium"
           variant="sm"

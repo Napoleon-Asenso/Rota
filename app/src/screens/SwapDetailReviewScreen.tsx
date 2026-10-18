@@ -8,6 +8,7 @@ import { Badge } from '../components/Badge';
 import { Button } from '../components/Button';
 import { PushNotificationModal } from '../components/PushNotificationModal';
 import { useAppStore } from '../storage/store';
+import { ArrowLeft } from 'lucide-react-native';
 
 /**
  * Screen 19: Swap Review & Approval Screen
@@ -52,10 +53,7 @@ export function SwapDetailReviewScreen(): React.JSX.Element {
             hitSlop={8}
             style={styles.backButton}
           >
-            <View style={styles.arrowIconWrapper} importantForAccessibility="no">
-              <View style={[styles.arrowShaft, { backgroundColor: colors['on-background-color'] }]} />
-              <View style={[styles.arrowHead, { borderColor: colors['on-background-color'] }]} />
-            </View>
+            <ArrowLeft size={24} color={colors['on-background-color']} />
           </Pressable>
           <Text weight="bold" variant="lg" color={colors['on-background-color']}>
             Swap Request

@@ -9,181 +9,32 @@ import { BottomTabBar } from '../components/BottomTabBar';
 import { PushNotificationModal } from '../components/PushNotificationModal';
 import { useAppStore } from '../storage/store';
 import { authApi } from '../services/api';
+import { ArrowLeft, Shield, Bell, Sun, RefreshCw, CloudOff, HelpCircle, LogOut } from 'lucide-react-native';
 
 /**
  * Clean Geometric Vector Icons for Settings Menu Rows
  */
 function MenuIcon({ name, color }: { name: string; color: string }): React.JSX.Element {
   if (name === 'account') {
-    // Shield / Account Icon
-    return (
-      <View style={iconStyles.box}>
-        <View style={[iconStyles.shieldTop, { backgroundColor: color }]} />
-        <View style={[iconStyles.shieldBottom, { backgroundColor: color }]} />
-      </View>
-    );
+    return <Shield size={20} color={color} />;
   }
-
   if (name === 'notifications') {
-    // Bell Icon
-    return (
-      <View style={iconStyles.box}>
-        <View style={[iconStyles.bellDome, { backgroundColor: color }]} />
-        <View style={[iconStyles.bellLip, { backgroundColor: color }]} />
-        <View style={[iconStyles.bellDot, { backgroundColor: color }]} />
-      </View>
-    );
+    return <Bell size={20} color={color} />;
   }
-
   if (name === 'appearance') {
-    // Sun / Moon Icon
-    return (
-      <View style={iconStyles.box}>
-        <View style={[iconStyles.sunCenter, { borderColor: color }]}>
-          <View style={[iconStyles.sunDot, { backgroundColor: color }]} />
-        </View>
-      </View>
-    );
+    return <Sun size={20} color={color} />;
   }
-
   if (name === 'sync') {
-    // Sync Circle Arrows
-    return (
-      <View style={iconStyles.box}>
-        <View style={[iconStyles.syncRing, { borderColor: color }]} />
-      </View>
-    );
+    return <RefreshCw size={20} color={color} />;
   }
-
   if (name === 'offline') {
-    // Cloud Icon
-    return (
-      <View style={iconStyles.box}>
-        <View style={[iconStyles.cloudPuff, { backgroundColor: color }]} />
-        <View style={[iconStyles.cloudBase, { backgroundColor: color }]} />
-      </View>
-    );
+    return <CloudOff size={20} color={color} />;
   }
-
   if (name === 'help') {
-    // Question / Help Mark
-    return (
-      <View style={iconStyles.box}>
-        <View style={[iconStyles.helpCircle, { borderColor: color }]}>
-          <Text variant="xs" weight="bold" color={color} style={iconStyles.helpText}>
-            ?
-          </Text>
-        </View>
-      </View>
-    );
+    return <HelpCircle size={20} color={color} />;
   }
-
-  // Logout icon
-  return (
-    <View style={iconStyles.box}>
-      <View style={[iconStyles.logoutFrame, { borderColor: '#EF4444' }]}>
-        <View style={[iconStyles.logoutArrow, { backgroundColor: '#EF4444' }]} />
-      </View>
-    </View>
-  );
+  return <LogOut size={20} color="#EF4444" />;
 }
-
-const iconStyles = StyleSheet.create({
-  box: {
-    width: 28,
-    height: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative'
-  },
-  shieldTop: {
-    width: 14,
-    height: 7,
-    borderTopLeftRadius: 7,
-    borderTopRightRadius: 7
-  },
-  shieldBottom: {
-    width: 14,
-    height: 9,
-    borderBottomLeftRadius: 7,
-    borderBottomRightRadius: 7
-  },
-  bellDome: {
-    width: 14,
-    height: 10,
-    borderTopLeftRadius: 7,
-    borderTopRightRadius: 7
-  },
-  bellLip: {
-    width: 18,
-    height: 2.5,
-    borderRadius: 1.25,
-    marginTop: 0.5
-  },
-  bellDot: {
-    width: 4,
-    height: 3,
-    borderRadius: 1.5,
-    marginTop: 0.5
-  },
-  sunCenter: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    borderWidth: 2,
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  sunDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3
-  },
-  syncRing: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    borderWidth: 2,
-    borderStyle: 'dashed'
-  },
-  cloudPuff: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    alignSelf: 'center',
-    marginBottom: -4
-  },
-  cloudBase: {
-    width: 20,
-    height: 8,
-    borderRadius: 4
-  },
-  helpCircle: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    borderWidth: 1.8,
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  helpText: {
-    lineHeight: 14
-  },
-  logoutFrame: {
-    width: 16,
-    height: 16,
-    borderLeftWidth: 2,
-    borderTopWidth: 2,
-    borderBottomWidth: 2,
-    justifyContent: 'center',
-    alignItems: 'flex-end'
-  },
-  logoutArrow: {
-    width: 10,
-    height: 2,
-    marginRight: -4
-  }
-});
 
 /**
  * Screen 11: User Settings Screen
@@ -233,10 +84,7 @@ export function UserSettingsScreen(): React.JSX.Element {
             hitSlop={8}
             style={styles.backButton}
           >
-            <View style={styles.arrowIconWrapper} importantForAccessibility="no">
-              <View style={[styles.arrowShaft, { backgroundColor: colors['on-background-color'] }]} />
-              <View style={[styles.arrowHead, { borderColor: colors['on-background-color'] }]} />
-            </View>
+            <ArrowLeft size={24} color={colors['on-background-color']} />
           </Pressable>
           <Text weight="bold" variant="lg" color={colors['on-background-color']}>
             Settings

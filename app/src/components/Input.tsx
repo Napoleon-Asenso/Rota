@@ -13,6 +13,7 @@ import {
 import { useTheme } from '../theme/ThemeContext';
 import { tokens } from '../theme/tokens';
 import { Text } from './Text';
+import { Eye, EyeOff } from 'lucide-react-native';
 
 export interface InputProps extends Omit<TextInputProps, 'style'> {
   label?: string;
@@ -28,49 +29,7 @@ export interface InputProps extends Omit<TextInputProps, 'style'> {
   accessibilityHint?: string;
 }
 
-/**
- * Clean accessible Eye icon component constructed with vector styling.
- * Supports cross-platform rendering (iOS, Android, Web) with zero font loading delays.
- */
-function EyeIcon({ visible, color }: { visible: boolean; color: string }): React.JSX.Element {
-  return (
-    <View style={eyeStyles.container} accessibilityElementsHidden importantForAccessibility="no">
-      <View style={[eyeStyles.eyeOutline, { borderColor: color }]}>
-        <View style={[eyeStyles.pupil, { backgroundColor: color }]} />
-      </View>
-      {!visible && <View style={[eyeStyles.slash, { backgroundColor: color }]} />}
-    </View>
-  );
-}
 
-const eyeStyles = StyleSheet.create({
-  container: {
-    width: 22,
-    height: 22,
-    justifyContent: 'center',
-    alignItems: 'center',
-    position: 'relative'
-  },
-  eyeOutline: {
-    width: 20,
-    height: 12,
-    borderRadius: 6,
-    borderWidth: 1.8,
-    justifyContent: 'center',
-    alignItems: 'center'
-  },
-  pupil: {
-    width: 5,
-    height: 5,
-    borderRadius: 2.5
-  },
-  slash: {
-    position: 'absolute',
-    width: 22,
-    height: 2,
-    transform: [{ rotate: '-45deg' }]
-  }
-});
 
 /**
  * Accessible Input primitive matching design tokens:
@@ -206,10 +165,11 @@ export function Input({
             hitSlop={8}
             style={styles.toggleButton}
           >
-            <EyeIcon
-              visible={passwordVisible}
-              color={passwordVisible ? colors['primary-color'] : colors['outline-color']}
-            />
+            {passwordVisible ? (
+              <EyeOff size={20} color={colors['primary-color']} />
+            ) : (
+              <Eye size={20} color={colors['outline-color']} />
+            )}
           </Pressable>
         )}
 

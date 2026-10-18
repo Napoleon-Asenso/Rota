@@ -8,64 +8,9 @@ import { Button } from '../components/Button';
 import { PushNotificationModal } from '../components/PushNotificationModal';
 import { useAppStore } from '../storage/store';
 import { settingsApi } from '../services/api';
+import { ArrowLeft, Bell } from 'lucide-react-native';
 
-/**
- * Geometric Vector Bell Hero Icon
- */
-function BellHeroIcon({ color }: { color: string }): React.JSX.Element {
-  return (
-    <View style={bellStyles.container} accessibilityElementsHidden importantForAccessibility="no">
-      {/* Top hanger loop */}
-      <View style={[bellStyles.hanger, { borderColor: color }]} />
-      {/* Bell main dome */}
-      <View style={[bellStyles.dome, { backgroundColor: color }]} />
-      {/* Bell bottom lip */}
-      <View style={[bellStyles.lip, { backgroundColor: color }]} />
-      {/* Clapper */}
-      <View style={[bellStyles.clapper, { backgroundColor: color }]} />
-    </View>
-  );
-}
 
-const bellStyles = StyleSheet.create({
-  container: {
-    width: 36,
-    height: 38,
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative'
-  },
-  hanger: {
-    width: 8,
-    height: 6,
-    borderTopLeftRadius: 4,
-    borderTopRightRadius: 4,
-    borderWidth: 2,
-    borderBottomWidth: 0,
-    marginBottom: -1
-  },
-  dome: {
-    width: 24,
-    height: 22,
-    borderTopLeftRadius: 12,
-    borderTopRightRadius: 12,
-    borderBottomLeftRadius: 4,
-    borderBottomRightRadius: 4
-  },
-  lip: {
-    width: 32,
-    height: 4,
-    borderRadius: 2,
-    marginTop: -1
-  },
-  clapper: {
-    width: 8,
-    height: 5,
-    borderBottomLeftRadius: 4,
-    borderBottomRightRadius: 4,
-    marginTop: 1
-  }
-});
 
 /**
  * Screen 10: Push Notification Settings Screen
@@ -164,10 +109,7 @@ export function PushNotificationSettingsScreen(): React.JSX.Element {
             hitSlop={8}
             style={styles.backButton}
           >
-            <View style={styles.arrowIconWrapper} importantForAccessibility="no">
-              <View style={[styles.arrowShaft, { backgroundColor: colors['on-background-color'] }]} />
-              <View style={[styles.arrowHead, { borderColor: colors['on-background-color'] }]} />
-            </View>
+            <ArrowLeft size={24} color={colors['on-background-color']} />
           </Pressable>
           <Text weight="bold" variant="lg" color={colors['on-background-color']}>
             Notifications
@@ -187,7 +129,7 @@ export function PushNotificationSettingsScreen(): React.JSX.Element {
               { backgroundColor: colors['primary-container-color'] }
             ]}
           >
-            <BellHeroIcon color={colors['primary-color']} />
+            <Bell size={32} color={colors['primary-color']} />
           </View>
         </View>
 

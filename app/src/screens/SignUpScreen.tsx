@@ -6,6 +6,7 @@ import { Text } from '../components/Text';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { useAppNavigation } from '../navigation';
+import { ArrowLeft } from 'lucide-react-native';
 
 /**
  * Screen 2: Sign Up Screen
@@ -21,9 +22,9 @@ export function SignUpScreen(): React.JSX.Element {
   const { colors } = useTheme();
   const navigation = useAppNavigation();
 
-  const [fullName, setFullName] = useState('Emeka Okafor');
-  const [email, setEmail] = useState('emeka@company.com');
-  const [password, setPassword] = useState('Password123!');
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -61,10 +62,7 @@ export function SignUpScreen(): React.JSX.Element {
           hitSlop={8}
           style={styles.backButton}
         >
-          <View style={styles.arrowIconWrapper} importantForAccessibility="no">
-            <View style={[styles.arrowShaft, { backgroundColor: colors['on-background-color'] }]} />
-            <View style={[styles.arrowHeadUpper, { borderColor: colors['on-background-color'] }]} />
-          </View>
+          <ArrowLeft size={24} color={colors['on-background-color']} />
         </Pressable>
       </View>
 
@@ -96,7 +94,6 @@ export function SignUpScreen(): React.JSX.Element {
           accessibilityLabel="Full name"
           autoComplete="name"
           textContentType="name"
-          placeholder="e.g. Emeka Okafor"
         />
 
         <Input
@@ -108,7 +105,6 @@ export function SignUpScreen(): React.JSX.Element {
           textContentType="emailAddress"
           keyboardType="email-address"
           autoCapitalize="none"
-          placeholder="e.g. emeka@company.com"
         />
 
         <Input
@@ -119,7 +115,6 @@ export function SignUpScreen(): React.JSX.Element {
           autoComplete="new-password"
           textContentType="newPassword"
           isPassword
-          placeholder="••••••••"
         />
 
         {/* Error Notice */}

@@ -9,6 +9,7 @@ import { Card } from '../components/Card';
 import { Input } from '../components/Input';
 import { Tappable } from '../components/Tappable';
 import { useAppNavigation } from '../navigation';
+import { ArrowLeft } from 'lucide-react-native';
 
 interface Invitee {
   id: string;
@@ -67,10 +68,7 @@ export function InviteMembersScreen(): React.JSX.Element {
           hitSlop={8}
           style={styles.backButton}
         >
-          <View style={styles.arrowIconWrapper} importantForAccessibility="no">
-            <View style={[styles.arrowShaft, { backgroundColor: colors['on-background-color'] }]} />
-            <View style={[styles.arrowHeadUpper, { borderColor: colors['on-background-color'] }]} />
-          </View>
+          <ArrowLeft size={24} color={colors['on-background-color']} />
         </Pressable>
       </View>
 

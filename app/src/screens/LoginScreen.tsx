@@ -6,6 +6,7 @@ import { Text } from '../components/Text';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { useAppNavigation } from '../navigation';
+import { ArrowLeft } from 'lucide-react-native';
 
 /**
  * Screen 3: Log In Screen
@@ -22,8 +23,8 @@ export function LoginScreen(): React.JSX.Element {
   const { colors } = useTheme();
   const navigation = useAppNavigation();
 
-  const [email, setEmail] = useState('emeka@company.com');
-  const [password, setPassword] = useState('Password123!');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -61,10 +62,7 @@ export function LoginScreen(): React.JSX.Element {
           hitSlop={8}
           style={styles.backButton}
         >
-          <View style={styles.arrowIconWrapper} importantForAccessibility="no">
-            <View style={[styles.arrowShaft, { backgroundColor: colors['on-background-color'] }]} />
-            <View style={[styles.arrowHeadUpper, { borderColor: colors['on-background-color'] }]} />
-          </View>
+          <ArrowLeft size={24} color={colors['on-background-color']} />
         </Pressable>
       </View>
 
@@ -98,7 +96,6 @@ export function LoginScreen(): React.JSX.Element {
           textContentType="emailAddress"
           keyboardType="email-address"
           autoCapitalize="none"
-          placeholder="e.g. emeka@company.com"
         />
 
         <View style={styles.passwordGroup}>
@@ -125,7 +122,6 @@ export function LoginScreen(): React.JSX.Element {
             autoComplete="current-password"
             textContentType="password"
             isPassword
-            placeholder="••••••••"
           />
         </View>
 
