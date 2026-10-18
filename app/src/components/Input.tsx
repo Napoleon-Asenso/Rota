@@ -144,12 +144,11 @@ export function Input({
           accessibilityLabel={accessibilityLabel || label || placeholder}
           accessibilityHint={error ? `Error: ${error}. ${accessibilityHint || ''}`.trim() : accessibilityHint}
           aria-invalid={Boolean(error)}
+          textAlignVertical="center"
           style={[
             styles.nativeInput,
-            {
-              color: colors['on-surface-color'],
-              paddingTop: floatingLabel ? (isFloated ? 18 : 10) : 0
-            },
+            { color: colors['on-surface-color'] },
+            floatingLabel ? { paddingTop: isFloated ? 18 : 10, paddingBottom: 0 } : null,
             inputStyle
           ]}
           {...rest}
@@ -217,8 +216,11 @@ const styles = StyleSheet.create({
     minHeight: tokens.accessibility.minTouchTarget,
     fontSize: tokens.typography.size.base,
     fontFamily: tokens.typography.fontFamily.sans,
-    paddingVertical: Platform.OS === 'ios' ? tokens.spacing[3] : tokens.spacing[2],
-    paddingHorizontal: 0
+    height: tokens.accessibility.minTouchTarget,
+    paddingVertical: 0,
+    paddingHorizontal: 0,
+    textAlignVertical: 'center',
+    ...(Platform.OS === 'web' ? ({ outlineStyle: 'none', outlineWidth: 0 } as any) : {})
   },
   leftIconWrapper: {
     marginRight: tokens.spacing[2],

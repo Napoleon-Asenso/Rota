@@ -19,6 +19,18 @@ if (Platform.OS === 'web' && typeof document !== 'undefined') {
         flex-direction: column !important;
         flex: 1 1 0% !important;
       }
+      /* Remove browser default focus outline rectangle on all inputs */
+      input, textarea, select, [contenteditable] {
+        outline: none !important;
+        -webkit-tap-highlight-color: transparent !important;
+      }
+      input:focus, textarea:focus, select:focus, [contenteditable]:focus,
+      input:focus-visible, textarea:focus-visible, select:focus-visible {
+        outline: none !important;
+        outline-style: none !important;
+        outline-width: 0 !important;
+        box-shadow: none !important;
+      }
     `;
     document.head.appendChild(style);
   }
