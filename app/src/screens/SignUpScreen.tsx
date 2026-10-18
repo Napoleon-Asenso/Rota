@@ -146,6 +146,23 @@ export function SignUpScreen(): React.JSX.Element {
     }
   };
 
+  // The button remains disabled until all fields are filled and valid
+  const isFullNameValid =
+    fullName.trim().length > 0 &&
+    !fullNameError &&
+    !validateFullName(fullName);
+
+  const isEmailValid =
+    email.trim().length > 0 &&
+    !emailError &&
+    !validateEmailSubmit(email);
+
+  const isPasswordValid =
+    password.trim().length >= 8 &&
+    !passwordError;
+
+  const isFormComplete = Boolean(isFullNameValid && isEmailValid && isPasswordValid);
+
   return (
     <ScrollView
       style={styles.root}
@@ -235,12 +252,13 @@ export function SignUpScreen(): React.JSX.Element {
 
         {/* Primary Action Button */}
         <Button
-          title={isLoading ? 'Creating account...' : 'Sign Up'}
+          title={isLoading ? 'Creating account...' : 'Create Account'}
           variant="primary"
           onPress={handleSignUp}
           loading={isLoading}
+          disabled={!isFormComplete || isLoading}
           style={styles.submitButton}
-          accessibilityLabel="Sign Up"
+          accessibilityLabel="Create Account"
           accessibilityHint="Creates your account and navigates to invite team members"
         />
 
