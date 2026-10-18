@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/app.js",
-    "dev": "ts-node src/app.ts",
+    "dev": "ts-node --transpile-only src/app.ts",
     "test": "node test/run-tests.js",
     "prisma:generate": "prisma generate",
     "prisma:push": "prisma db push",

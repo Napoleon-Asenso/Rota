@@ -47,6 +47,9 @@ export const DEFAULT_POOL_CONFIG: PoolConfig = {
  * Injects connection pool parameters into a PostgreSQL connection URI.
  */
 export function buildPooledDatabaseUrl(baseUrl: string, config: PoolConfig = DEFAULT_POOL_CONFIG): string {
+  if (baseUrl.startsWith('file:')) {
+    return baseUrl;
+  }
   try {
     const parsed = new URL(baseUrl);
     parsed.searchParams.set('connection_limit', config.connectionLimit.toString());
@@ -64,7 +67,7 @@ export function buildPooledDatabaseUrl(baseUrl: string, config: PoolConfig = DEF
  * Creates a PrismaClient instance explicitly bound to the 20-connection pool.
  */
 export function createPooledPrismaClient(
-  databaseUrl: string = process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/rota_db',
+  databaseUrl: string = process.env.DATABASE_URL || 'file:./dev.db',
   config: PoolConfig = DEFAULT_POOL_CONFIG
 ): PrismaClient {
   const pooledUrl = buildPooledDatabaseUrl(databaseUrl, config);

@@ -37,3 +37,7 @@ Thumbs.db
 
 # TypeScript declaration cache
 *.tsbuildinfo
+
+# Local SQLite development database
+*.db
+*.db-journal

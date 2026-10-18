@@ -29,6 +29,12 @@ export function errorHandler(
   const statusCode = err.statusCode || 500;
   const code = err.code || (statusCode === 500 ? 'INTERNAL_SERVER_ERROR' : 'ERROR');
 
+  if (statusCode >= 500) {
+    console.error(`[Server Error] ${code}: ${err.message}`, err.stack || err);
+  } else {
+    console.warn(`[Client Error] ${statusCode} ${code}: ${err.message}`);
+  }
+
   res.status(statusCode).json({
     success: false,
     error: {

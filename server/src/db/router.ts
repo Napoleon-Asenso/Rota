@@ -21,8 +21,8 @@ import { redis } from '../config/redis';
  * 3. Read requests outside the 5-second window are safely offloaded to `replicaClient`.
  */
 
-const primaryUrl = process.env.DATABASE_PRIMARY_URL || process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/rota_db';
-const replicaUrl = process.env.DATABASE_REPLICA_URL || process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/rota_db';
+const primaryUrl = process.env.DATABASE_PRIMARY_URL || process.env.DATABASE_URL || 'file:./dev.db';
+const replicaUrl = process.env.DATABASE_REPLICA_URL || process.env.DATABASE_URL || 'file:./dev.db';
 
 // Primary Client for all writes and recent-write reads
 export const primaryClient: PrismaClient = createPooledPrismaClient(primaryUrl);

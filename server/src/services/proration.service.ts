@@ -1,3 +1,4 @@
+/// <reference path="../types/declarations.d.ts" />
 import { differenceInSeconds } from 'date-fns';
 import { PLANS, PlanTierName } from './billingConstants';
 

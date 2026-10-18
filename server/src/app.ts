@@ -1,6 +1,8 @@
-import express, { Request, Response } from 'express';
+/// <reference path="./types/declarations.d.ts" />
+import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import { prisma } from './db/prisma';
 import { errorHandler } from './middleware/errorHandler';
 import { authMiddleware, tenantContextMiddleware } from './middleware/auth';
 import {
@@ -43,11 +45,37 @@ app.use(express.json());
 app.use(readYourOwnWritesMiddleware);
 
 // -------------------------------------------------------------
-// Health Check Route
+// Terminal HTTP Request Logger Middleware
 // -------------------------------------------------------------
-app.get('/health', (req: Request, res: Response) => {
-  res.status(200).json({
-    status: 'healthy',
+app.use((req: Request, res: Response, next: NextFunction) => {
+  const start = Date.now();
+  res.on('finish', () => {
+    const duration = Date.now() - start;
+    const status = res.statusCode;
+    const color = status >= 500 ? '\x1b[31m' : status >= 400 ? '\x1b[33m' : '\x1b[32m';
+    const reset = '\x1b[0m';
+    console.log(`[HTTP] ${req.method} ${req.originalUrl || req.url} ${color}${status}${reset} - ${duration}ms`);
+  });
+  next();
+});
+
+// -------------------------------------------------------------
+// Health Check Route (Checks Database Connectivity)
+// -------------------------------------------------------------
+app.get('/health', async (req: Request, res: Response) => {
+  let dbStatus = 'disconnected';
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    dbStatus = 'connected';
+  } catch (err: unknown) {
+    const error = err as Error;
+    dbStatus = `error: ${error.message}`;
+  }
+
+  const isHealthy = dbStatus === 'connected';
+  res.status(isHealthy ? 200 : 503).json({
+    status: isHealthy ? 'healthy' : 'degraded',
+    database: dbStatus,
     timestamp: new Date().toISOString(),
     service: 'rota-backend-api',
     uptime: process.uptime()
@@ -116,7 +144,14 @@ app.use(errorHandler);
 // If running directly as entry point
 const PORT = process.env.PORT || 4000;
 if (process.env.NODE_ENV !== 'test') {
-  app.listen(PORT, () => {
+  app.listen(PORT, async () => {
     console.log(`[Rota] Server running on http://localhost:${PORT}`);
+    try {
+      await prisma.$queryRaw`SELECT 1`;
+      console.log(`[Database] SQLite database connection verified successfully.`);
+    } catch (err: unknown) {
+      const error = err as Error;
+      console.error(`[Database] Connection warning/failure:`, error.message);
+    }
   });
 }

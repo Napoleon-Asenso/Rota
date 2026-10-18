@@ -1,8 +1,39 @@
 import { Request } from 'express';
 
-export type Role = 'OWNER' | 'MANAGER' | 'STAFF';
-export type ShiftStatus = 'DRAFT' | 'PUBLISHED' | 'CANCELLED' | 'COMPLETED';
-export type SwapStatus = 'OPEN_FOR_CLAIM' | 'PENDING_PEER_APPROVAL' | 'PENDING_MANAGER_APPROVAL' | 'APPROVED' | 'REJECTED' | 'CANCELLED';
+export const Role = {
+  OWNER: 'OWNER',
+  MANAGER: 'MANAGER',
+  STAFF: 'STAFF',
+} as const;
+export type Role = typeof Role[keyof typeof Role];
+
+export const ShiftStatus = {
+  DRAFT: 'DRAFT',
+  SCHEDULED: 'SCHEDULED',
+  CONFIRMED: 'CONFIRMED',
+  CANCELLED: 'CANCELLED',
+  PUBLISHED: 'PUBLISHED',
+  COMPLETED: 'COMPLETED',
+} as const;
+export type ShiftStatus = typeof ShiftStatus[keyof typeof ShiftStatus];
+
+export const SwapStatus = {
+  PENDING: 'PENDING',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED',
+  CANCELLED: 'CANCELLED',
+  OPEN_FOR_CLAIM: 'OPEN_FOR_CLAIM',
+  PENDING_PEER_APPROVAL: 'PENDING_PEER_APPROVAL',
+  PENDING_MANAGER_APPROVAL: 'PENDING_MANAGER_APPROVAL',
+} as const;
+export type SwapStatus = typeof SwapStatus[keyof typeof SwapStatus];
+
+export const LedgerType = {
+  CHARGE: 'CHARGE',
+  CREDIT: 'CREDIT',
+  REFUND: 'REFUND',
+} as const;
+export type LedgerType = typeof LedgerType[keyof typeof LedgerType];
 
 export interface AuthUserPayload {
   sub: string;
