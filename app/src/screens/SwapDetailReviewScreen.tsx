@@ -70,12 +70,7 @@ export function SwapDetailReviewScreen(): React.JSX.Element {
           >
             Review Shift Swap
           </Text>
-          <Badge
-            label="Awaiting approval"
-            style={{
-              backgroundColor: '#FFFBEB'
-            }}
-          />
+          <Badge label="Awaiting approval" tone="amber" />
         </View>
 
         {/* Staff 1 Card: Initiator */}

@@ -207,14 +207,14 @@ export async function createShift(req: AuthenticatedRequest, res: Response): Pro
         actorId,
         type: 'SHIFT_PUBLISHED',
         description: `New shift scheduled: ${shift.roleTitle} at ${location}`,
-        metadata: {
+        metadata: JSON.stringify({
           shiftId: shift.id,
           roleTitle: shift.roleTitle,
           location: shift.location,
           assignedToId: shift.userId,
           startTime: shift.startTime.toISOString(),
           endTime: shift.endTime.toISOString()
-        }
+        })
       }
     });
 
@@ -317,11 +317,11 @@ export async function requestSwap(req: AuthenticatedRequest, res: Response): Pro
         actorId: requesterId,
         type: 'SWAP_REQUEST',
         description: `${swap.requester.fullName} requested swap for ${shift.roleTitle}`,
-        metadata: {
+        metadata: JSON.stringify({
           swapId: swap.id,
           shiftId: shift.id,
           targetUserId: data.targetUserId || null
-        }
+        })
       }
     });
 
@@ -425,12 +425,12 @@ export async function approveSwap(req: AuthenticatedRequest, res: Response): Pro
         actorId,
         type: 'SWAP_APPROVED',
         description: `Swap request approved for ${approvedSwap.shift.roleTitle}`,
-        metadata: {
+        metadata: JSON.stringify({
           swapId: approvedSwap.id,
           shiftId: approvedSwap.shiftId,
           reassignedToId: newAssigneeId,
           reassignedToName: reallocatedShift.user.fullName
-        }
+        })
       }
     });
 

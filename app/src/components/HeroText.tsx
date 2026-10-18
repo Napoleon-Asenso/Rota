@@ -82,8 +82,7 @@ const styles = StyleSheet.create({
   },
   title: {
     width: '100%',
-    flexWrap: 'wrap',
-    letterSpacing: -0.4
+    flexWrap: 'wrap'
   },
   subtitle: {
     width: '100%',

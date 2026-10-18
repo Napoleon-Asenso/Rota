@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import { PrismaClient, Role } from '@prisma/client';
-import { registerSchema, loginSchema, refreshTokenSchema } from '../schemas/auth';
+import { registerSchema, loginSchema, refreshTokenSchema, forgotPasswordSchema } from '../schemas/auth';
 import { signAccessToken } from '../utils/jwt';
 import { AuthenticatedRequest } from '../types';
 import { store } from '../services/store.service';
@@ -44,7 +44,18 @@ export async function registerHandler(req: Request, res: Response): Promise<void
       return;
     }
 
-    const { fullName, email, password, inviteToken } = parseResult.data;
+    const { fullName, email, password, inviteToken, firstName, middleName, lastName } = parseResult.data;
+
+    // Parse names for edge cases (first, middle, last name handling)
+    const words = fullName.trim().split(/\s+/).filter(Boolean);
+    const derivedFirstName = firstName || (words[0] ?? fullName);
+    const derivedLastName = lastName || (words.length > 1 ? words[words.length - 1] : '');
+    const derivedMiddleName =
+      middleName !== undefined
+        ? middleName
+        : words.length > 2
+        ? words.slice(1, -1).join(' ')
+        : null;
 
     // Check if user already exists in DB
     const existingUser = await prisma.user.findUnique({
@@ -88,6 +99,9 @@ export async function registerHandler(req: Request, res: Response): Promise<void
       data: {
         email: email.toLowerCase(),
         fullName,
+        firstName: derivedFirstName,
+        middleName: derivedMiddleName,
+        lastName: derivedLastName,
         passwordHash,
         userSettings: {
           create: {
@@ -238,7 +252,7 @@ export async function loginHandler(req: Request, res: Response): Promise<void> {
     // Resolve primary membership
     const primaryMembership = user.memberships[0];
     const teamId = primaryMembership ? primaryMembership.teamId : 'team-default-1';
-    const role: Role = primaryMembership ? primaryMembership.role : Role.STAFF;
+    const role: Role = primaryMembership ? (primaryMembership.role as Role) : Role.STAFF;
 
     // Issue 15-minute access token
     const accessToken = signAccessToken({
@@ -339,7 +353,7 @@ export async function refreshHandler(req: Request, res: Response): Promise<void>
           sub: existingToken.user.id,
           email: existingToken.user.email,
           teamId: membership ? membership.teamId : 'team-default-1',
-          role: membership ? membership.role : Role.STAFF,
+          role: membership ? (membership.role as Role) : Role.STAFF,
           tokenVersion: 1
         });
 
@@ -445,7 +459,7 @@ export async function refreshHandler(req: Request, res: Response): Promise<void>
     // Issue new access token
     const membership = existing.user.memberships[0];
     const teamId = membership ? membership.teamId : 'team-default-1';
-    const role: Role = membership ? membership.role : Role.STAFF;
+    const role: Role = membership ? (membership.role as Role) : Role.STAFF;
 
     const accessToken = signAccessToken({
       sub: existing.user.id,
@@ -632,6 +646,50 @@ export async function meHandler(req: AuthenticatedRequest, res: Response): Promi
       error: {
         code: 'INTERNAL_SERVER_ERROR',
         message: 'An unexpected error occurred retrieving user profile.',
+        details: null
+      }
+    });
+  }
+}
+
+/**
+ * POST /api/auth/forgot-password
+ * Handles password reset request by validating the email and returning a safe confirmation.
+ */
+export async function forgotPasswordHandler(req: Request, res: Response): Promise<void> {
+  try {
+    const parseResult = forgotPasswordSchema.safeParse(req.body);
+    if (!parseResult.success) {
+      res.status(400).json({
+        success: false,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: parseResult.error.errors[0]?.message || 'Please provide a valid email address.',
+          details: parseResult.error.flatten()
+        }
+      });
+      return;
+    }
+
+    const { email } = parseResult.data;
+    // Check if user exists (generic response to prevent email enumeration)
+    await prisma.user.findUnique({
+      where: { email: email.toLowerCase() }
+    });
+
+    res.status(200).json({
+      success: true,
+      data: {
+        message: 'If an account exists with that email address, password reset instructions have been sent.'
+      }
+    });
+  } catch (error) {
+    console.error('[Auth] Forgot password error:', error);
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'An unexpected error occurred processing password reset.',
         details: null
       }
     });

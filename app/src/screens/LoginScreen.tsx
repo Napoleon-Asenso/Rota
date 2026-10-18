@@ -6,7 +6,7 @@ import { Text } from '../components/Text';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { useAppNavigation } from '../navigation';
-import { ArrowLeft, Mail, Lock } from 'lucide-react-native';
+import { ArrowLeft } from 'lucide-react-native';
 
 /**
  * Screen 3: Log In Screen
@@ -18,6 +18,7 @@ import { ArrowLeft, Mail, Lock } from 'lucide-react-native';
  * - Navigation to Dashboard upon authentication
  */
 import { authApi } from '../services/api';
+import { validateEmailRealtime, validateEmailSubmit } from '../utils/validators';
 
 export function LoginScreen(): React.JSX.Element {
   const { colors } = useTheme();
@@ -25,14 +26,40 @@ export function LoginScreen(): React.JSX.Element {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  const handleEmailChange = (text: string): void => {
+    setEmail(text);
+    if (errorMessage) setErrorMessage(null);
+    setEmailError(validateEmailRealtime(text));
+  };
+
   const handleLogin = async (): Promise<void> => {
+    let hasError = false;
+    const emailErr = validateEmailSubmit(email);
+    if (emailErr) {
+      setEmailError(emailErr);
+      hasError = true;
+    } else {
+      setEmailError(null);
+    }
+
+    if (!password.trim()) {
+      setPasswordError('Password is required');
+      hasError = true;
+    } else {
+      setPasswordError(null);
+    }
+
+    if (hasError) return;
+
     try {
       setIsLoading(true);
       setErrorMessage(null);
-      await authApi.login(email.trim(), password);
+      await authApi.login(email.trim(), password.trim());
       navigation.goToDashboard();
     } catch (err: unknown) {
       const errorObj = err as { response?: { data?: { error?: { message?: string } } }; message?: string };
@@ -90,22 +117,31 @@ export function LoginScreen(): React.JSX.Element {
         <Input
           label="Email Address"
           value={email}
-          onChangeText={setEmail}
+          onChangeText={handleEmailChange}
+          error={emailError || undefined}
           accessibilityLabel="Email address"
           autoComplete="email"
           textContentType="emailAddress"
           keyboardType="email-address"
           autoCapitalize="none"
-          leftIcon={<Mail size={18} color={colors['outline-color']} />}
         />
 
-        <View style={styles.passwordGroup}>
-          <View style={styles.passwordHeaderRow}>
-            <Text weight="medium" variant="sm" color={colors['on-surface-color']}>
-              Password
-            </Text>
+        <Input
+          label="Password"
+          value={password}
+          onChangeText={(text) => {
+            setPassword(text);
+            if (passwordError) setPasswordError(null);
+            if (errorMessage) setErrorMessage(null);
+          }}
+          error={passwordError || undefined}
+          accessibilityLabel="Password"
+          autoComplete="current-password"
+          textContentType="password"
+          isPassword
+          headerRight={
             <Pressable
-              onPress={() => {}}
+              onPress={() => navigation.goToResetPassword()}
               accessibilityRole="link"
               accessibilityLabel="Forgot password?"
               accessibilityHint="Navigates to password reset"
@@ -115,22 +151,13 @@ export function LoginScreen(): React.JSX.Element {
                 Forgot password?
               </Text>
             </Pressable>
-          </View>
-          <Input
-            value={password}
-            onChangeText={setPassword}
-            accessibilityLabel="Password"
-            autoComplete="current-password"
-            textContentType="password"
-            isPassword
-            leftIcon={<Lock size={18} color={colors['outline-color']} />}
-          />
-        </View>
+          }
+        />
 
         {/* Error Notice */}
         {errorMessage ? (
-          <View style={[styles.errorContainer, { backgroundColor: colors['error-container-color'] }]}>
-            <Text variant="sm" color={colors['on-error-container-color']} weight="medium">
+          <View style={styles.errorContainer}>
+            <Text variant="sm" color={colors['error-color']} weight="medium">
               {errorMessage}
             </Text>
           </View>
@@ -145,33 +172,6 @@ export function LoginScreen(): React.JSX.Element {
           style={styles.submitButton}
           accessibilityLabel="Log In"
           accessibilityHint="Logs in to your account and takes you to your shift calendar"
-        />
-
-        {/* Divider */}
-        <View
-          style={styles.dividerRow}
-          accessibilityElementsHidden
-          importantForAccessibility="no-hide-descendants"
-        >
-          <View
-            style={[styles.dividerLine, { backgroundColor: colors['outline-variant-color'] }]}
-          />
-          <Text variant="xs" color={colors['outline-color']} style={styles.dividerText}>
-            OR
-          </Text>
-          <View
-            style={[styles.dividerLine, { backgroundColor: colors['outline-variant-color'] }]}
-          />
-        </View>
-
-        {/* Continue with Google */}
-        <Button
-          title="Continue with Google"
-          variant="outline"
-          onPress={handleLogin}
-          style={styles.googleButton}
-          accessibilityLabel="Continue with Google"
-          accessibilityHint="Log in using your Google account"
         />
 
         {/* Link to Sign Up */}
@@ -248,41 +248,16 @@ const styles = StyleSheet.create({
   form: {
     gap: tokens.spacing[4]
   },
-  passwordGroup: {
-    gap: tokens.spacing[1.5]
-  },
-  passwordHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center'
-  },
   forgotLink: {
     minHeight: tokens.accessibility.minTouchTarget,
     justifyContent: 'center',
     paddingHorizontal: tokens.spacing[1]
   },
   errorContainer: {
-    padding: tokens.spacing[2],
-    borderRadius: tokens.borderRadius['radius-md'],
     marginTop: tokens.spacing[1]
   },
   submitButton: {
     marginTop: tokens.spacing[2]
-  },
-  dividerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: tokens.spacing[2]
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1
-  },
-  dividerText: {
-    marginHorizontal: tokens.spacing[3]
-  },
-  googleButton: {
-    width: '100%'
   },
   signUpLink: {
     minHeight: tokens.accessibility.minTouchTarget,

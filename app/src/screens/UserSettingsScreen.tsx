@@ -9,7 +9,7 @@ import { BottomTabBar } from '../components/BottomTabBar';
 import { PushNotificationModal } from '../components/PushNotificationModal';
 import { useAppStore } from '../storage/store';
 import { authApi } from '../services/api';
-import { ArrowLeft, Shield, Bell, Sun, RefreshCw, CloudOff, HelpCircle, LogOut, ChevronRight } from 'lucide-react-native';
+import { ArrowLeft, Shield, Bell, Sun, Moon, RefreshCw, CloudOff, HelpCircle, LogOut, ChevronRight } from 'lucide-react-native';
 
 /**
  * Clean Geometric Vector Icons for Settings Menu Rows
@@ -23,6 +23,9 @@ function MenuIcon({ name, color }: { name: string; color: string }): React.JSX.E
   }
   if (name === 'appearance') {
     return <Sun size={20} color={color} />;
+  }
+  if (name === 'appearance-dark') {
+    return <Moon size={20} color={color} />;
   }
   if (name === 'sync') {
     return <RefreshCw size={20} color={color} />;
@@ -168,12 +171,15 @@ export function UserSettingsScreen(): React.JSX.Element {
             style={styles.menuRow}
           >
             <View style={styles.menuLeft}>
-              <MenuIcon name="appearance" color={colors['primary-color']} />
+              <MenuIcon name={mode === 'dark' ? 'appearance-dark' : 'appearance'} color={colors['primary-color']} />
               <Text weight="medium" variant="base" color={colors['on-surface-color']}>
-                Appearance ({mode === 'dark' ? 'Dark' : 'Light'})
+                Appearance
               </Text>
             </View>
-            <ChevronRight size={18} color={colors['outline-color']} />
+            <View style={styles.menuRightBadge}>
+              <Badge label={mode === 'dark' ? 'Dark' : 'Light'} tone="blue" />
+              <ChevronRight size={18} color={colors['outline-color']} />
+            </View>
           </Pressable>
 
           <View style={[styles.divider, { backgroundColor: colors['outline-variant-color'] }]} />

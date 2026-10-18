@@ -12,7 +12,8 @@ export const AppScreens = {
   RequestSwap: 9,
   PushSettings: 10,
   UserSettings: 11,
-  OfflineViewing: 12
+  OfflineViewing: 12,
+  ResetPassword: 20
 } as const;
 
 export type AppScreenName = keyof typeof AppScreens;
@@ -22,6 +23,7 @@ export type AppScreenName = keyof typeof AppScreens;
  * Manages smooth screen transitions with back stack history:
  * - Splash -> Sign Up -> Invite Members -> Dashboard
  * - Splash -> Log In -> Dashboard
+ * - Log In -> Reset Password -> Log In
  */
 export function useAppNavigation() {
   const currentScreenId = useAppStore((s) => s.currentScreenId);
@@ -37,10 +39,11 @@ export function useAppNavigation() {
     goBack,
     setCurrentScreenId,
 
-    // Named transition helpers for Milestone 1
+    // Named transition helpers
     goToSplash: () => navigate(AppScreens.Splash),
     goToSignUp: () => navigate(AppScreens.SignUp),
     goToLogin: () => navigate(AppScreens.Login),
+    goToResetPassword: () => navigate(AppScreens.ResetPassword),
     goToInviteMembers: () => navigate(AppScreens.InviteMembers),
     goToDashboard: () => navigate(AppScreens.Dashboard)
   };

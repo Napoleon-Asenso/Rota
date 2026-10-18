@@ -18,10 +18,32 @@ export function remToPx(remStr: string | number): number {
   return isNaN(val) ? 0 : val;
 }
 
-// Light mode default palette & status badge colors
-export const colors = {
-  ...rawTokens.color.light,
-  status: {
+export type ColorScheme = 'light' | 'dark';
+
+export interface StatusColors {
+  confirmed: { bg: string; text: string };
+  pending: { bg: string; text: string };
+  invited: { bg: string; text: string };
+}
+
+export function getStatusColors(mode: ColorScheme = 'light'): StatusColors {
+  if (mode === 'dark') {
+    return {
+      confirmed: {
+        bg: 'rgba(34, 197, 94, 0.18)',
+        text: '#4ADE80'
+      },
+      pending: {
+        bg: 'rgba(245, 158, 11, 0.18)',
+        text: '#FBBF24'
+      },
+      invited: {
+        bg: 'rgba(59, 130, 246, 0.18)',
+        text: '#60A5FA'
+      }
+    };
+  }
+  return {
     confirmed: {
       bg: '#E8F5E9',
       text: '#1B5E20'
@@ -34,8 +56,23 @@ export const colors = {
       bg: rawTokens.color.light['secondary-container-color'],
       text: rawTokens.color.light['on-secondary-container-color']
     }
-  }
-} as const;
+  };
+}
+
+export type ThemeColors = typeof rawTokens.color.light & {
+  status: StatusColors;
+};
+
+export function getThemeColors(mode: ColorScheme = 'light'): ThemeColors {
+  const palette = rawTokens.color[mode] || rawTokens.color.light;
+  return {
+    ...palette,
+    status: getStatusColors(mode)
+  } as ThemeColors;
+}
+
+// Light mode default palette & status badge colors
+export const colors: ThemeColors = getThemeColors('light');
 
 // Typography helpers & line heights
 export const typography = {
@@ -179,13 +216,6 @@ export const tokens = {
     maxFontSizeMultiplier: 2
   }
 } as const;
-
-export type ThemeColors = typeof rawTokens.color.light;
-export type ColorScheme = 'light' | 'dark';
-
-export function getThemeColors(mode: ColorScheme = 'light'): ThemeColors {
-  return rawTokens.color[mode] as ThemeColors;
-}
 
 /**
  * Helper hook to access resolved design tokens

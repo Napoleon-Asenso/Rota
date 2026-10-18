@@ -10,6 +10,7 @@ import { Input } from '../components/Input';
 import { Tappable } from '../components/Tappable';
 import { useAppNavigation } from '../navigation';
 import { ArrowLeft, Mail, Link, Copy } from 'lucide-react-native';
+import { validateEmailRealtime, validateEmailSubmit } from '../utils/validators';
 
 interface Invitee {
   id: string;
@@ -36,20 +37,30 @@ export function InviteMembersScreen(): React.JSX.Element {
 
   const [activeTab, setActiveTab] = useState<'Email' | 'Share Link'>('Email');
   const [emailInput, setEmailInput] = useState('');
+  const [emailError, setEmailError] = useState<string | null>(null);
   const [invitees, setInvitees] = useState<Invitee[]>([
     { id: '1', email: 'sarah@company.com', status: 'Pending' },
     { id: '2', email: 'mike@company.com', status: 'Invited' },
     { id: '3', email: 'lisa@company.com', status: 'Invited' }
   ]);
 
+  const handleEmailChange = (text: string): void => {
+    setEmailInput(text);
+    setEmailError(validateEmailRealtime(text));
+  };
+
   const handleSendInvite = (): void => {
-    if (emailInput.trim()) {
-      setInvitees((prev) => [
-        { id: String(Date.now()), email: emailInput.trim(), status: 'Pending' },
-        ...prev
-      ]);
-      setEmailInput('');
+    const emailErr = validateEmailSubmit(emailInput);
+    if (emailErr) {
+      setEmailError(emailErr);
+      return;
     }
+    setInvitees((prev) => [
+      { id: String(Date.now()), email: emailInput.trim(), status: 'Pending' },
+      ...prev
+    ]);
+    setEmailInput('');
+    setEmailError(null);
   };
 
   return (
@@ -146,13 +157,13 @@ export function InviteMembersScreen(): React.JSX.Element {
             <Input
               label="Enter email address"
               value={emailInput}
-              onChangeText={setEmailInput}
+              onChangeText={handleEmailChange}
+              error={emailError || undefined}
               accessibilityLabel="Email address to invite"
               autoComplete="email"
               keyboardType="email-address"
               autoCapitalize="none"
               placeholder="e.g. jane@company.com"
-              leftIcon={<Mail size={18} color={colors['outline-color']} />}
             />
             <Button
               title="Send Invite"

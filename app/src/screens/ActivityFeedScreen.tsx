@@ -98,33 +98,35 @@ export type FeedPreviewState = 'normal' | 'loading' | 'empty' | 'error' | 'end';
  * - User-plus icon: purple
  */
 function ActivityIcon({ type }: { type: ActivityItem['type'] }): React.JSX.Element {
+  const { isDark } = useTheme();
+
   if (type === 'shift_published') {
     return (
-      <View style={[styles.iconSquircle, { backgroundColor: '#E0F2FE' }]}>
-        <Calendar size={20} color="#0284C7" />
+      <View style={[styles.iconSquircle, { backgroundColor: isDark ? 'rgba(56, 189, 248, 0.15)' : '#E0F2FE' }]}>
+        <Calendar size={20} color={isDark ? '#38BDF8' : '#0284C7'} />
       </View>
     );
   }
 
   if (type === 'swap_request') {
     return (
-      <View style={[styles.iconSquircle, { backgroundColor: '#FEF3C7' }]}>
-        <ArrowLeftRight size={20} color="#D97706" />
+      <View style={[styles.iconSquircle, { backgroundColor: isDark ? 'rgba(245, 158, 11, 0.15)' : '#FEF3C7' }]}>
+        <ArrowLeftRight size={20} color={isDark ? '#FBBF24' : '#D97706'} />
       </View>
     );
   }
 
   if (type === 'shift_approved') {
     return (
-      <View style={[styles.iconSquircle, { backgroundColor: '#DCFCE7' }]}>
-        <CheckCircle2 size={20} color="#16A34A" />
+      <View style={[styles.iconSquircle, { backgroundColor: isDark ? 'rgba(34, 197, 94, 0.15)' : '#DCFCE7' }]}>
+        <CheckCircle2 size={20} color={isDark ? '#4ADE80' : '#16A34A'} />
       </View>
     );
   }
 
   return (
-    <View style={[styles.iconSquircle, { backgroundColor: '#F3E8FF' }]}>
-      <UserPlus size={20} color="#9333EA" />
+    <View style={[styles.iconSquircle, { backgroundColor: isDark ? 'rgba(168, 85, 247, 0.15)' : '#F3E8FF' }]}>
+      <UserPlus size={20} color={isDark ? '#C084FC' : '#9333EA'} />
     </View>
   );
 }
@@ -329,12 +331,7 @@ export function ActivityFeedScreen(): React.JSX.Element {
 
       {item.badge && (
         <View style={styles.badgeWrapper}>
-          <Badge
-            label={item.badge.label}
-            style={{
-              backgroundColor: item.badge.bg
-            }}
-          />
+          <Badge label={item.badge.label} tone="amber" />
         </View>
       )}
     </Card>

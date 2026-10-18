@@ -12,7 +12,8 @@ import {
   meHandler,
   logoutHandler,
   logoutAllHandler,
-  logoutAllHandler as revokeAllHandler
+  logoutAllHandler as revokeAllHandler,
+  forgotPasswordHandler
 } from './controllers/auth.controller';
 import {
   getShifts,
@@ -87,6 +88,7 @@ app.get('/health', async (req: Request, res: Response) => {
 // -------------------------------------------------------------
 app.post('/api/auth/register', registerHandler);
 app.post('/api/auth/login', loginHandler);
+app.post('/api/auth/forgot-password', forgotPasswordHandler);
 app.post('/api/auth/refresh', refreshHandler);
 app.post('/api/auth/logout', logoutHandler);
 app.post('/api/auth/logout-all', authMiddleware, logoutAllHandler);

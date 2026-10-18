@@ -56,6 +56,7 @@ import { FeedErrorStateScreen } from './src/screens/FeedErrorStateScreen';
 import { FeedInfiniteScrollScreen } from './src/screens/FeedInfiniteScrollScreen';
 import { OptimisticUpdateScreen } from './src/screens/OptimisticUpdateScreen';
 import { SwapDetailReviewScreen } from './src/screens/SwapDetailReviewScreen';
+import { ResetPasswordScreen } from './src/screens/ResetPasswordScreen';
 
 const SCREENS = [
   { id: 1, title: 'Screen 1: Welcome / Splash', component: WelcomeScreen },
@@ -76,14 +77,16 @@ const SCREENS = [
   { id: 16, title: 'Screen 16: Feed (Error State)', component: FeedErrorStateScreen },
   { id: 17, title: 'Screen 17: Feed (Infinite Scroll)', component: FeedInfiniteScrollScreen },
   { id: 18, title: 'Screen 18: Optimistic Update', component: OptimisticUpdateScreen },
-  { id: 19, title: 'Screen 19: Swap Review & Approval', component: SwapDetailReviewScreen }
+  { id: 19, title: 'Screen 19: Swap Review & Approval', component: SwapDetailReviewScreen },
+  { id: 20, title: 'Screen 20: Reset Password', component: ResetPasswordScreen }
 ];
 
 import { setupNotificationListeners } from './src/navigation/linking';
 import { registerForPushNotificationsAsync } from './src/services/notifications';
+import { StatusBar } from 'expo-status-bar';
 
 function MainContent(): React.JSX.Element {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const currentScreenId = useAppStore((s) => s.currentScreenId);
 
   const activeScreen = SCREENS.find((s) => s.id === currentScreenId) || SCREENS[0];
@@ -112,6 +115,7 @@ function MainContent(): React.JSX.Element {
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: screenBg }]}>
+      <StatusBar style={currentScreenId === 1 || isDark ? 'light' : 'dark'} />
       <View style={[styles.screenWrapper, { backgroundColor: screenBg }]}>
         <Component />
       </View>

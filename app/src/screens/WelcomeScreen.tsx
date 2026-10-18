@@ -237,6 +237,7 @@ export function WelcomeScreen(): React.JSX.Element {
             <Text
               weight="extrabold"
               variant="4xl"
+              fluid="hero"
               color="#FFFFFF"
               style={styles.welcomeToText}
             >
@@ -245,6 +246,7 @@ export function WelcomeScreen(): React.JSX.Element {
             <Text
               weight="extrabold"
               variant="4xl"
+              fluid="hero"
               color="#38BDF8"
               style={styles.rotaBrandText}
               accessibilityRole="header"
@@ -256,6 +258,7 @@ export function WelcomeScreen(): React.JSX.Element {
           {/* 3. Scanty & Catchy App Description */}
           <Text
             variant="base"
+            fluid="lead"
             color="rgba(255, 255, 255, 0.72)"
             style={styles.descriptionText}
           >
@@ -345,7 +348,7 @@ export function WelcomeScreen(): React.JSX.Element {
                   transform: [{ translateX: splashWordmarkTranslateX }]
                 }}
               >
-                <Text weight="bold" variant="4xl" color="#FFFFFF" style={styles.splashBrandText}>
+                <Text weight="bold" variant="4xl" color="#FFFFFF">
                   Rota
                 </Text>
               </Animated.View>
@@ -390,9 +393,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: tokens.spacing[3]
-  },
-  splashBrandText: {
-    letterSpacing: -0.6
   },
 
   // Phase 2: Welcome Layer
@@ -559,22 +559,14 @@ const styles = StyleSheet.create({
     marginBottom: tokens.spacing[2.5]
   },
   welcomeToText: {
-    letterSpacing: -0.5,
-    textAlign: 'center',
-    fontSize: 34,
-    lineHeight: 40
+    textAlign: 'center'
   },
   rotaBrandText: {
-    letterSpacing: -0.5,
     textAlign: 'center',
-    fontSize: 34,
-    lineHeight: 40,
     color: '#38BDF8'
   },
   descriptionText: {
     textAlign: 'center',
-    lineHeight: 22,
-    fontSize: 15,
     maxWidth: tokens.layout.heroMaxWidth,
     width: '100%',
     flexWrap: 'wrap',

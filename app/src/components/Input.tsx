@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useId, useRef, useImperativeHandle } from 'react';
 import {
   View,
   TextInput,
@@ -17,8 +17,12 @@ import { Eye, EyeOff } from 'lucide-react-native';
 
 export interface InputProps extends Omit<TextInputProps, 'style'> {
   label?: string;
+  headerRight?: React.ReactNode;
   floatingLabel?: boolean;
   error?: string;
+  required?: boolean;
+  requiredMessage?: string;
+  autoTrim?: boolean;
   helperText?: string;
   isPassword?: boolean;
   leftIcon?: React.ReactNode;
@@ -29,66 +33,124 @@ export interface InputProps extends Omit<TextInputProps, 'style'> {
   accessibilityHint?: string;
 }
 
-
-
 /**
  * Accessible Input primitive matching design tokens:
+ * - Programmatically connected labels via nativeID, aria-labelledby, and tap-to-focus
+ * - Automatically trims leading spaces in real time and trailing spaces on blur
+ * - Client-side validation: displays error beneath input when field is left empty after focus
+ * - Error stroke matches design system error token
  * - Standard or Floating label
+ * - Optional headerRight slot (e.g. for "Forgot password?") aligned with standard label
  * - Password visibility toggle with 44pt touch target
  * - Semantic error state & helper text
  * - WCAG minimum 44pt touch height
  */
-export function Input({
-  label,
-  floatingLabel = false,
-  error,
-  helperText,
-  isPassword = false,
-  leftIcon,
-  rightIcon,
-  containerStyle,
-  inputStyle,
-  value,
-  onChangeText,
-  placeholder,
-  accessibilityLabel,
-  accessibilityHint,
-  secureTextEntry,
-  onFocus,
-  onBlur,
-  ...rest
-}: InputProps): React.JSX.Element {
+export const Input = React.forwardRef<TextInput, InputProps>(function Input(
+  {
+    id,
+    nativeID,
+    label,
+    headerRight,
+    floatingLabel = false,
+    error,
+    required = true,
+    requiredMessage,
+    autoTrim = true,
+    helperText,
+    isPassword = false,
+    leftIcon,
+    rightIcon,
+    containerStyle,
+    inputStyle,
+    value,
+    onChangeText,
+    placeholder,
+    accessibilityLabel,
+    accessibilityHint,
+    secureTextEntry,
+    onFocus,
+    onBlur,
+    ...rest
+  },
+  ref
+): React.JSX.Element {
   const { colors } = useTheme();
   const [isFocused, setIsFocused] = useState<boolean>(false);
+  const [touched, setTouched] = useState<boolean>(false);
   const [passwordVisible, setPasswordVisible] = useState<boolean>(false);
+  const [internalValue, setInternalValue] = useState<string>(
+    rest.defaultValue ? String(rest.defaultValue) : ''
+  );
+  const internalInputRef = useRef<TextInput>(null);
+
+  useImperativeHandle(ref, () => internalInputRef.current as TextInput);
+
+  const fallbackId = useId();
+  const inputId = id || nativeID || `input-${fallbackId.replace(/:/g, '')}`;
+  const labelId = `${inputId}-label`;
 
   const isActuallyPassword = isPassword || secureTextEntry;
   const isMasked = isActuallyPassword && !passwordVisible;
-  const hasValue = Boolean(value && String(value).length > 0);
+  const currentValue = value !== undefined ? value : internalValue;
+  const hasValue = Boolean(
+    currentValue !== undefined && currentValue !== null && String(currentValue).trim().length > 0
+  );
   const isFloated = floatingLabel && (isFocused || hasValue);
 
-  const borderColor = error
-    ? '#EF4444' // Error state
+  // Client-side validation: display error message when nothing is entered after focusing
+  const isBlankAfterFocus = required && touched && !hasValue;
+  const computedError =
+    error || (isBlankAfterFocus ? (requiredMessage || `${label || 'This field'} is required.`) : undefined);
+
+  // Background styling:
+  // Background is removed ('transparent') across all states, including when forms are filled out
+  const inputBgColor = 'transparent';
+
+  // Stroke color from design system tokens (colors['error-color'])
+  const borderColor = computedError
+    ? colors['error-color']
     : isFocused
-    ? colors['primary-color'] // Focus state
-    : colors['outline-variant-color']; // Default border
+    ? colors['primary-color']
+    : colors['outline-variant-color'];
 
   const togglePasswordVisibility = (): void => {
     setPasswordVisible((prev) => !prev);
   };
 
+  const handleLabelPress = (): void => {
+    internalInputRef.current?.focus();
+  };
+
   return (
     <View style={[styles.rootContainer, containerStyle]}>
-      {/* Standard Label */}
+      {/* Standard Label Row */}
       {label && !floatingLabel && (
-        <Text
-          weight="medium"
-          variant="sm"
-          color={colors['on-surface-color']}
-          style={styles.standardLabel}
-        >
-          {label}
-        </Text>
+        <View style={styles.labelRow}>
+          <Pressable
+            onPress={handleLabelPress}
+            accessibilityRole="none"
+            hitSlop={4}
+            style={styles.labelPressable}
+            {...(Platform.OS === 'web' ? ({ htmlFor: inputId } as any) : {})}
+          >
+            <Text
+              id={labelId}
+              nativeID={labelId}
+              weight="medium"
+              variant="sm"
+              color={colors['on-surface-color']}
+              style={styles.standardLabel}
+            >
+              {label}
+            </Text>
+          </Pressable>
+          {headerRight && <View style={styles.headerRightContainer}>{headerRight}</View>}
+        </View>
+      )}
+      {!label && !floatingLabel && headerRight && (
+        <View style={[styles.labelRow, styles.labelRowRightOnly]}>
+          <View style={styles.headerRightContainer}>{headerRight}</View>
+        </View>
       )}
 
       {/* Input Box Wrapper */}
@@ -96,31 +158,40 @@ export function Input({
         style={[
           styles.inputWrapper,
           {
-            backgroundColor: colors['surface-container-lowest-color'],
+            backgroundColor: inputBgColor,
             borderColor,
-            borderWidth: isFocused || error ? 1.5 : 1
+            borderWidth: isFocused || computedError ? 1.5 : 1
           }
         ]}
       >
         {/* Floating Label */}
         {label && floatingLabel && (
-          <Text
-            variant={isFloated ? 'xs' : 'base'}
-            weight="medium"
-            color={
-              error
-                ? '#EF4444'
-                : isFocused
-                ? colors['primary-color']
-                : colors['outline-color']
-            }
+          <Pressable
+            onPress={handleLabelPress}
+            accessibilityRole="none"
             style={[
-              styles.floatingLabelText,
+              styles.floatingLabelWrapper,
               isFloated ? styles.floatingLabelActive : styles.floatingLabelResting
             ]}
+            {...(Platform.OS === 'web' ? ({ htmlFor: inputId } as any) : {})}
           >
-            {label}
-          </Text>
+            <Text
+              id={labelId}
+              nativeID={labelId}
+              variant={isFloated ? 'xs' : 'base'}
+              weight="medium"
+              color={
+                computedError
+                  ? colors['error-color']
+                  : isFocused
+                  ? colors['primary-color']
+                  : colors['outline-color']
+              }
+              style={styles.floatingLabelText}
+            >
+              {label}
+            </Text>
+          </Pressable>
         )}
 
         {/* Optional Left Icon */}
@@ -128,8 +199,19 @@ export function Input({
 
         {/* Native Text Input */}
         <TextInput
+          ref={internalInputRef}
+          id={inputId}
+          nativeID={inputId}
+          aria-labelledby={label ? labelId : undefined}
           value={value}
-          onChangeText={onChangeText}
+          onChangeText={(text) => {
+            // Trim leading empty spaces at the beginning of input fields
+            const sanitizedText = autoTrim ? text.replace(/^\s+/, '') : text;
+            if (value === undefined) {
+              setInternalValue(sanitizedText);
+            }
+            onChangeText?.(sanitizedText);
+          }}
           placeholder={floatingLabel && !isFloated ? undefined : placeholder}
           placeholderTextColor={colors['outline-color']}
           secureTextEntry={isMasked}
@@ -139,11 +221,28 @@ export function Input({
           }}
           onBlur={(e) => {
             setIsFocused(false);
+            setTouched(true);
+
+            // Trim trailing spaces at the end when leaving the input field
+            if (autoTrim && typeof currentValue === 'string') {
+              const trimmed = currentValue.trim();
+              if (trimmed !== currentValue) {
+                if (value === undefined) {
+                  setInternalValue(trimmed);
+                }
+                onChangeText?.(trimmed);
+              }
+            }
+
             onBlur?.(e);
           }}
           accessibilityLabel={accessibilityLabel || label || placeholder}
-          accessibilityHint={error ? `Error: ${error}. ${accessibilityHint || ''}`.trim() : accessibilityHint}
-          aria-invalid={Boolean(error)}
+          accessibilityHint={
+            computedError
+              ? `Error: ${computedError}. ${accessibilityHint || ''}`.trim()
+              : accessibilityHint
+          }
+          aria-invalid={Boolean(computedError)}
           textAlignVertical="center"
           style={[
             styles.nativeInput,
@@ -178,11 +277,11 @@ export function Input({
         )}
       </View>
 
-      {/* Error Message */}
-      {error ? (
+      {/* Error Message beneath input field */}
+      {computedError ? (
         <View style={styles.errorContainer} accessible accessibilityRole="alert">
-          <Text variant="xs" weight="medium" color="#EF4444" style={styles.errorText}>
-            {error}
+          <Text variant="xs" weight="medium" color={colors['error-color']} style={styles.errorText}>
+            {computedError}
           </Text>
         </View>
       ) : helperText ? (
@@ -192,15 +291,32 @@ export function Input({
       ) : null}
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   rootContainer: {
     width: '100%',
     gap: tokens.spacing[1.5]
   },
-  standardLabel: {
+  labelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: tokens.spacing[0.5]
+  },
+  labelRowRightOnly: {
+    justifyContent: 'flex-end'
+  },
+  labelPressable: {
+    alignSelf: 'flex-start',
+    ...(Platform.OS === 'web' ? ({ cursor: 'pointer' } as any) : {})
+  },
+  standardLabel: {
+    marginBottom: 0
+  },
+  headerRightContainer: {
+    flexDirection: 'row',
+    alignItems: 'center'
   },
   inputWrapper: {
     position: 'relative',
@@ -217,6 +333,7 @@ const styles = StyleSheet.create({
     fontSize: tokens.typography.size.base,
     fontFamily: tokens.typography.fontFamily.sans,
     height: tokens.accessibility.minTouchTarget,
+    backgroundColor: 'transparent',
     paddingVertical: 0,
     paddingHorizontal: 0,
     textAlignVertical: 'center',
@@ -239,11 +356,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginLeft: tokens.spacing[1]
   },
-  floatingLabelText: {
+  floatingLabelWrapper: {
     position: 'absolute',
     left: tokens.spacing[4],
-    zIndex: 1
+    zIndex: 1,
+    ...(Platform.OS === 'web' ? ({ cursor: 'pointer' } as any) : {})
   },
+  floatingLabelText: {},
   floatingLabelResting: {
     top: 14
   },

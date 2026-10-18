@@ -84,12 +84,7 @@ export function OfflineViewingScreen(): React.JSX.Element {
           >
             Upcoming Shifts
           </Text>
-          <Badge
-            label="Available Offline"
-            style={{
-              backgroundColor: '#ECFDF5'
-            }}
-          />
+          <Badge label="Available Offline" tone="emerald" />
         </View>
 
         {/* Cached Shift Cards List */}

@@ -6,7 +6,7 @@ import { Text } from '../components/Text';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { useAppNavigation } from '../navigation';
-import { ArrowLeft, User, Mail, Lock } from 'lucide-react-native';
+import { ArrowLeft } from 'lucide-react-native';
 
 /**
  * Screen 2: Sign Up Screen
@@ -18,6 +18,8 @@ import { ArrowLeft, User, Mail, Lock } from 'lucide-react-native';
  */
 import { authApi } from '../services/api';
 
+import { validateEmailRealtime, validateEmailSubmit } from '../utils/validators';
+
 export function SignUpScreen(): React.JSX.Element {
   const { colors } = useTheme();
   const navigation = useAppNavigation();
@@ -25,14 +27,112 @@ export function SignUpScreen(): React.JSX.Element {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [fullNameError, setFullNameError] = useState<string | null>(null);
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  const validateFullName = (text: string): string | null => {
+    // 1. Only letters and spaces are allowed
+    if (/[^a-zA-Z\s]/.test(text)) {
+      return 'Name can only contain letters and spaces.';
+    }
+
+    const trimmed = text.trim();
+    if (!trimmed) {
+      return 'Full Name is required';
+    }
+
+    const words = trimmed.split(/\s+/).filter(Boolean);
+
+    // Check for empty string / spaces after the first word with no new word entered yet
+    if (words.length === 1 && text.length > words[0].length) {
+      return 'Please enter a second word after the first name.';
+    }
+
+    // Ensure at least two words are entered
+    if (words.length < 2) {
+      return 'Please enter at least two words (e.g. First and Last name).';
+    }
+
+    return null;
+  };
+
+  const handleFullNameChange = (text: string): void => {
+    setFullName(text);
+    if (errorMessage) setErrorMessage(null);
+
+    // 1. Check for invalid characters in real time
+    if (/[^a-zA-Z\s]/.test(text)) {
+      setFullNameError('Name can only contain letters and spaces.');
+      return;
+    }
+
+    // 2. Check for empty string / space after the last character of first word with no second word yet
+    const trimmed = text.trim();
+    const words = trimmed.split(/\s+/).filter(Boolean);
+    if (words.length === 1 && text.length > words[0].length) {
+      setFullNameError('Please enter a second word after the first name.');
+      return;
+    }
+
+    // 3. Clear error as soon as at least two valid words are present
+    if (words.length >= 2) {
+      setFullNameError(null);
+    } else if (fullNameError && fullNameError !== 'Full Name is required') {
+      setFullNameError(null);
+    }
+  };
+
+  const handleEmailChange = (text: string): void => {
+    setEmail(text);
+    if (errorMessage) setErrorMessage(null);
+    setEmailError(validateEmailRealtime(text));
+  };
+
   const handleSignUp = async (): Promise<void> => {
+    let hasError = false;
+    const nameErr = validateFullName(fullName);
+    if (nameErr) {
+      setFullNameError(nameErr);
+      hasError = true;
+    } else {
+      setFullNameError(null);
+    }
+
+    const emailErr = validateEmailSubmit(email);
+    if (emailErr) {
+      setEmailError(emailErr);
+      hasError = true;
+    } else {
+      setEmailError(null);
+    }
+
+    if (!password.trim()) {
+      setPasswordError('Password is required');
+      hasError = true;
+    } else {
+      setPasswordError(null);
+    }
+
+    if (hasError) return;
+
     try {
       setIsLoading(true);
       setErrorMessage(null);
-      await authApi.register(fullName.trim(), email.trim(), password);
+
+      // Parse first name, middle name, and last name for edge cases
+      const words = fullName.trim().split(/\s+/).filter(Boolean);
+      const firstName = words[0] || fullName.trim();
+      const lastName = words.length > 1 ? words[words.length - 1] : '';
+      const middleName = words.length > 2 ? words.slice(1, -1).join(' ') : null;
+
+      await authApi.register(fullName.trim(), email.trim(), password.trim(), undefined, {
+        firstName,
+        middleName,
+        lastName
+      });
       navigation.goToInviteMembers();
     } catch (err: unknown) {
       const errorObj = err as { response?: { data?: { error?: { message?: string } } }; message?: string };
@@ -90,40 +190,44 @@ export function SignUpScreen(): React.JSX.Element {
         <Input
           label="Full Name"
           value={fullName}
-          onChangeText={setFullName}
+          onChangeText={handleFullNameChange}
+          error={fullNameError || undefined}
           accessibilityLabel="Full name"
           autoComplete="name"
           textContentType="name"
-          leftIcon={<User size={18} color={colors['outline-color']} />}
         />
 
         <Input
           label="Email Address"
           value={email}
-          onChangeText={setEmail}
+          onChangeText={handleEmailChange}
+          error={emailError || undefined}
           accessibilityLabel="Email address"
           autoComplete="email"
           textContentType="emailAddress"
           keyboardType="email-address"
           autoCapitalize="none"
-          leftIcon={<Mail size={18} color={colors['outline-color']} />}
         />
 
         <Input
           label="Password"
           value={password}
-          onChangeText={setPassword}
+          onChangeText={(text) => {
+            setPassword(text);
+            if (passwordError) setPasswordError(null);
+            if (errorMessage) setErrorMessage(null);
+          }}
+          error={passwordError || undefined}
           accessibilityLabel="Password"
           autoComplete="new-password"
           textContentType="newPassword"
           isPassword
-          leftIcon={<Lock size={18} color={colors['outline-color']} />}
         />
 
         {/* Error Notice */}
         {errorMessage ? (
-          <View style={[styles.errorContainer, { backgroundColor: colors['error-container-color'] }]}>
-            <Text variant="sm" color={colors['on-error-container-color']} weight="medium">
+          <View style={styles.errorContainer}>
+            <Text variant="sm" color={colors['error-color']} weight="medium">
               {errorMessage}
             </Text>
           </View>
@@ -138,42 +242,6 @@ export function SignUpScreen(): React.JSX.Element {
           style={styles.submitButton}
           accessibilityLabel="Sign Up"
           accessibilityHint="Creates your account and navigates to invite team members"
-        />
-
-        {/* Legal Terms Caption */}
-        <Text
-          variant="xs"
-          color={colors['on-surface-variant-color']}
-          style={styles.termsNote}
-        >
-          By creating an account, you agree to our Terms of Service and Privacy Policy.
-        </Text>
-
-        {/* Divider */}
-        <View
-          style={styles.dividerRow}
-          accessibilityElementsHidden
-          importantForAccessibility="no-hide-descendants"
-        >
-          <View
-            style={[styles.dividerLine, { backgroundColor: colors['outline-variant-color'] }]}
-          />
-          <Text variant="xs" color={colors['outline-color']} style={styles.dividerText}>
-            OR
-          </Text>
-          <View
-            style={[styles.dividerLine, { backgroundColor: colors['outline-variant-color'] }]}
-          />
-        </View>
-
-        {/* Continue with Google */}
-        <Button
-          title="Continue with Google"
-          variant="outline"
-          onPress={handleSignUp}
-          style={styles.googleButton}
-          accessibilityLabel="Continue with Google"
-          accessibilityHint="Sign up using your Google account"
         />
 
         {/* Link to Login */}
@@ -251,32 +319,10 @@ const styles = StyleSheet.create({
     gap: tokens.spacing[4]
   },
   errorContainer: {
-    padding: tokens.spacing[2],
-    borderRadius: tokens.borderRadius['radius-md'],
     marginTop: tokens.spacing[1]
   },
   submitButton: {
     marginTop: tokens.spacing[2]
-  },
-  termsNote: {
-    textAlign: 'center',
-    lineHeight: 18,
-    paddingHorizontal: tokens.spacing[2]
-  },
-  dividerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: tokens.spacing[2]
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1
-  },
-  dividerText: {
-    marginHorizontal: tokens.spacing[3]
-  },
-  googleButton: {
-    width: '100%'
   },
   loginLink: {
     minHeight: tokens.accessibility.minTouchTarget,

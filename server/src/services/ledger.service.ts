@@ -1,6 +1,8 @@
 import { PrismaClient, LedgerType } from '@prisma/client';
 import { prisma as defaultPrisma } from '../db/prisma';
 
+export { LedgerType };
+
 export interface CreateLedgerEntryInput {
   teamId: string;
   type: LedgerType;
@@ -35,7 +37,10 @@ export async function appendLedgerEntry(
   });
 
   if (existing) {
-    return existing;
+    return {
+      ...existing,
+      type: existing.type as LedgerType
+    };
   }
 
   // 2. Transactionally fetch prior balance and append entry
@@ -45,7 +50,10 @@ export async function appendLedgerEntry(
       where: { idempotencyKey: input.idempotencyKey }
     });
     if (existingInTx) {
-      return existingInTx;
+      return {
+        ...existingInTx,
+        type: existingInTx.type as LedgerType
+      };
     }
 
     const lastEntry = await tx.ledgerEntry.findFirst({
@@ -60,7 +68,7 @@ export async function appendLedgerEntry(
         ? previousBalance + input.amountCents
         : previousBalance - input.amountCents;
 
-    return await tx.ledgerEntry.create({
+    const created = await tx.ledgerEntry.create({
       data: {
         teamId: input.teamId,
         type: input.type,
@@ -70,6 +78,11 @@ export async function appendLedgerEntry(
         idempotencyKey: input.idempotencyKey
       }
     });
+
+    return {
+      ...created,
+      type: created.type as LedgerType
+    };
   });
 }
 
@@ -80,8 +93,13 @@ export async function getTeamLedger(
   teamId: string,
   prismaClient: PrismaClient = defaultPrisma
 ): Promise<LedgerEntryRecord[]> {
-  return await prismaClient.ledgerEntry.findMany({
+  const entries = await prismaClient.ledgerEntry.findMany({
     where: { teamId },
     orderBy: { createdAt: 'desc' }
   });
+
+  return entries.map((entry) => ({
+    ...entry,
+    type: entry.type as LedgerType
+  }));
 }

@@ -15,7 +15,7 @@ export interface BadgeProps {
 }
 
 export function Badge({ label, status, tone, style }: BadgeProps): React.JSX.Element {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
 
   const displayLabel = label || status || '';
 
@@ -37,11 +37,11 @@ export function Badge({ label, status, tone, style }: BadgeProps): React.JSX.Ele
   let text = colors['on-surface-variant-color'];
 
   if (resolvedTone === 'emerald') {
-    bg = '#E8F5E9';
-    text = '#1B5E20'; // ~7:1 on bg (WCAG AAA)
+    bg = isDark ? colors.status.confirmed.bg : '#E8F5E9';
+    text = isDark ? colors.status.confirmed.text : '#1B5E20';
   } else if (resolvedTone === 'amber') {
-    bg = '#FFF8E1';
-    text = '#7A4A00'; // ~7:1 on bg (WCAG AAA)
+    bg = isDark ? colors.status.pending.bg : '#FFF8E1';
+    text = isDark ? colors.status.pending.text : '#7A4A00';
   } else if (resolvedTone === 'blue') {
     bg = colors['secondary-container-color'];
     text = colors['on-secondary-container-color'];

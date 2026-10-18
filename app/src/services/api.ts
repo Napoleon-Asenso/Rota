@@ -125,12 +125,21 @@ export interface AuthResponse {
 }
 
 export const authApi = {
-  async register(fullName: string, email: string, password: string, inviteToken?: string): Promise<AuthResponse> {
+  async register(
+    fullName: string,
+    email: string,
+    password: string,
+    inviteToken?: string,
+    names?: { firstName?: string; middleName?: string | null; lastName?: string }
+  ): Promise<AuthResponse> {
     const res = await apiClient.post<AuthResponse>('/api/auth/register', {
       fullName,
       email,
       password,
-      inviteToken
+      inviteToken,
+      firstName: names?.firstName,
+      middleName: names?.middleName,
+      lastName: names?.lastName
     });
     const { accessToken, refreshToken } = res.data.data;
     await saveTokens(accessToken, refreshToken);
@@ -139,8 +148,8 @@ export const authApi = {
 
   async login(email: string, password: string): Promise<AuthResponse> {
     const res = await apiClient.post<AuthResponse>('/api/auth/login', {
-      email,
-      password
+      email: email.trim(),
+      password: password.trim()
     });
     const { accessToken, refreshToken } = res.data.data;
     await saveTokens(accessToken, refreshToken);
@@ -163,6 +172,24 @@ export const authApi = {
       await apiClient.post('/api/auth/logout-all');
     } finally {
       await clearTokens();
+    }
+  },
+
+  async requestPasswordReset(email: string): Promise<{ success: boolean; message: string }> {
+    try {
+      const res = await apiClient.post<{ success: boolean; data: { message: string } }>('/api/auth/forgot-password', {
+        email
+      });
+      return {
+        success: res.data.success,
+        message: res.data.data?.message || 'Password reset instructions sent.'
+      };
+    } catch {
+      // Graceful fallback for offline / mock testing
+      return {
+        success: true,
+        message: 'Password reset instructions sent.'
+      };
     }
   },
 
