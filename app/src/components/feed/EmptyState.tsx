@@ -4,6 +4,7 @@ import { useTheme } from '../../theme/ThemeContext';
 import { tokens } from '../../theme/tokens';
 import { Text } from '../Text';
 import { Button } from '../Button';
+import { ClipboardList } from 'lucide-react-native';
 
 export interface EmptyStateProps {
   onRefresh?: () => void;
@@ -32,11 +33,7 @@ export function EmptyState({ onRefresh, style }: EmptyStateProps): React.JSX.Ele
         accessibilityElementsHidden
         importantForAccessibility="no-hide-descendants"
       >
-        <View style={[styles.clipboardBody, { borderColor: colors['primary-color'] }]}>
-          <View style={[styles.clipboardClip, { backgroundColor: colors['primary-color'] }]} />
-          <View style={[styles.clipboardLine, { backgroundColor: colors['outline-variant-color'] }]} />
-          <View style={[styles.clipboardLineShort, { backgroundColor: colors['outline-variant-color'] }]} />
-        </View>
+        <ClipboardList size={36} color={colors['primary-color']} />
       </View>
 
       <Text

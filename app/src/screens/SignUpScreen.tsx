@@ -6,7 +6,7 @@ import { Text } from '../components/Text';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { useAppNavigation } from '../navigation';
-import { ArrowLeft } from 'lucide-react-native';
+import { ArrowLeft, User, Mail, Lock } from 'lucide-react-native';
 
 /**
  * Screen 2: Sign Up Screen
@@ -94,6 +94,7 @@ export function SignUpScreen(): React.JSX.Element {
           accessibilityLabel="Full name"
           autoComplete="name"
           textContentType="name"
+          leftIcon={<User size={18} color={colors['outline-color']} />}
         />
 
         <Input
@@ -105,6 +106,7 @@ export function SignUpScreen(): React.JSX.Element {
           textContentType="emailAddress"
           keyboardType="email-address"
           autoCapitalize="none"
+          leftIcon={<Mail size={18} color={colors['outline-color']} />}
         />
 
         <Input
@@ -115,12 +117,13 @@ export function SignUpScreen(): React.JSX.Element {
           autoComplete="new-password"
           textContentType="newPassword"
           isPassword
+          leftIcon={<Lock size={18} color={colors['outline-color']} />}
         />
 
         {/* Error Notice */}
         {errorMessage ? (
           <View style={[styles.errorContainer, { backgroundColor: colors['error-container-color'] }]}>
-            <Text variant="sm" color={colors['error-color']} weight="medium">
+            <Text variant="sm" color={colors['on-error-container-color']} weight="medium">
               {errorMessage}
             </Text>
           </View>

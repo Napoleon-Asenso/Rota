@@ -8,7 +8,7 @@ import { Badge } from '../components/Badge';
 import { Button } from '../components/Button';
 import { PushNotificationModal } from '../components/PushNotificationModal';
 import { useAppStore } from '../storage/store';
-import { ArrowLeft } from 'lucide-react-native';
+import { ArrowLeft, ArrowRight, ArrowDownUp, Check, X, Clock } from 'lucide-react-native';
 
 /**
  * Screen 19: Swap Review & Approval Screen
@@ -124,6 +124,13 @@ export function SwapDetailReviewScreen(): React.JSX.Element {
           </Text>
         </Card>
 
+        {/* Swap Direction Indicator */}
+        <View style={{ alignItems: 'center', marginVertical: tokens.spacing[2] }}>
+          <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: colors['surface-variant-color'], alignItems: 'center', justifyContent: 'center' }}>
+            <ArrowDownUp size={18} color={colors['primary-color']} />
+          </View>
+        </View>
+
         {/* Staff 2 Card: Target Peer */}
         <Text
           weight="semibold"
@@ -195,11 +202,12 @@ export function SwapDetailReviewScreen(): React.JSX.Element {
           onPress={() => setShowPushBanner(true)}
           accessibilityRole="button"
           accessibilityLabel="Preview OS notification banner"
-          style={styles.previewTrigger}
+          style={[styles.previewTrigger, { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 }]}
         >
           <Text variant="xs" weight="medium" color={colors['primary-color']}>
-            Preview OS Push Banner (Shift Approved) →
+            Preview OS Push Banner (Shift Approved)
           </Text>
+          <ArrowRight size={14} color={colors['primary-color']} />
         </Pressable>
       </ScrollView>
     </View>

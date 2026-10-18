@@ -8,6 +8,7 @@ import { Card } from '../components/Card';
 import { Button } from '../components/Button';
 import { Tappable } from '../components/Tappable';
 import { useAppStore } from '../storage/store';
+import { UserPlus, Users } from 'lucide-react-native';
 
 export function TeamMembersScreen(): React.JSX.Element {
   const { colors } = useTheme();
@@ -81,9 +82,7 @@ export function TeamMembersScreen(): React.JSX.Element {
         accessibilityLabel="Invite team member"
         style={[styles.fab, { backgroundColor: colors['primary-color'] }]}
       >
-        <Text weight="bold" variant="2xl" color={colors['on-primary-color']} importantForAccessibility="no">
-          +
-        </Text>
+        <UserPlus size={24} color={colors['on-primary-color']} />
       </Tappable>
     </View>
   );

@@ -24,6 +24,7 @@ import {
   InfiniteScrollFooter
 } from '../components/feed';
 import { useActivityFeed } from '../hooks/useActivityFeed';
+import { Calendar, ArrowLeftRight, CheckCircle2, UserPlus } from 'lucide-react-native';
 
 export interface ActivityItem {
   id: string;
@@ -98,60 +99,32 @@ export type FeedPreviewState = 'normal' | 'loading' | 'empty' | 'error' | 'end';
  */
 function ActivityIcon({ type }: { type: ActivityItem['type'] }): React.JSX.Element {
   if (type === 'shift_published') {
-    // Calendar Icon
     return (
       <View style={[styles.iconSquircle, { backgroundColor: '#E0F2FE' }]}>
-        <View style={iconStyles.calendarBody}>
-          <View style={iconStyles.calendarHeader} />
-          <View style={iconStyles.calendarDotsRow}>
-            <View style={iconStyles.calendarDot} />
-            <View style={iconStyles.calendarDot} />
-            <View style={iconStyles.calendarDot} />
-          </View>
-        </View>
+        <Calendar size={20} color="#0284C7" />
       </View>
     );
   }
 
   if (type === 'swap_request') {
-    // Swap Arrows Icon
     return (
       <View style={[styles.iconSquircle, { backgroundColor: '#FEF3C7' }]}>
-        <View style={iconStyles.swapWrapper}>
-          <View style={iconStyles.swapArrowTop}>
-            <View style={iconStyles.swapShaft} />
-            <View style={iconStyles.swapHeadRight} />
-          </View>
-          <View style={iconStyles.swapArrowBottom}>
-            <View style={iconStyles.swapHeadLeft} />
-            <View style={iconStyles.swapShaft} />
-          </View>
-        </View>
+        <ArrowLeftRight size={20} color="#D97706" />
       </View>
     );
   }
 
   if (type === 'shift_approved') {
-    // Checkmark Icon
     return (
       <View style={[styles.iconSquircle, { backgroundColor: '#DCFCE7' }]}>
-        <Text weight="bold" variant="base" color="#16A34A" importantForAccessibility="no">
-          ✓
-        </Text>
+        <CheckCircle2 size={20} color="#16A34A" />
       </View>
     );
   }
 
-  // User-Plus Icon
   return (
     <View style={[styles.iconSquircle, { backgroundColor: '#F3E8FF' }]}>
-      <View style={iconStyles.userWrapper}>
-        <View style={iconStyles.userHead} />
-        <View style={iconStyles.userBody} />
-        <Text variant="xs" weight="bold" color="#9333EA" style={iconStyles.plusText}>
-          +
-        </Text>
-      </View>
+      <UserPlus size={20} color="#9333EA" />
     </View>
   );
 }

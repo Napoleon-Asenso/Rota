@@ -4,6 +4,7 @@ import { useTheme } from '../../theme/ThemeContext';
 import { tokens } from '../../theme/tokens';
 import { Text } from '../Text';
 import { Card } from '../Card';
+import { CheckCircle2 } from 'lucide-react-native';
 
 export interface EndOfListStateProps {
   style?: ViewStyle;
@@ -28,9 +29,7 @@ export function EndOfListState({ style }: EndOfListStateProps): React.JSX.Elemen
         accessibilityElementsHidden
         importantForAccessibility="no-hide-descendants"
       >
-        <Text weight="bold" variant="3xl" color="#1B5E20" importantForAccessibility="no">
-          ✓
-        </Text>
+        <CheckCircle2 size={36} color="#16A34A" />
       </View>
 
       <Text

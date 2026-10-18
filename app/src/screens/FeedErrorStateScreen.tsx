@@ -6,6 +6,7 @@ import { Text } from '../components/Text';
 import { Tappable } from '../components/Tappable';
 import { ErrorState } from '../components/feed/ErrorState';
 import { useAppStore } from '../storage/store';
+import { ArrowLeft, ArrowRight } from 'lucide-react-native';
 
 /**
  * Screen 16: Activity Feed Error State Screen
@@ -19,10 +20,11 @@ export function FeedErrorStateScreen(): React.JSX.Element {
       <Tappable
         onPress={() => setCurrentScreenId(8)}
         accessibilityLabel="Back to activity feed"
-        style={styles.backButton}
+        style={[styles.backButton, { flexDirection: 'row', alignItems: 'center', gap: 6 }]}
       >
+        <ArrowLeft size={16} color={colors['primary-color']} />
         <Text weight="semibold" variant="sm" color={colors['primary-color']}>
-          ← Back to Activity Feed
+          Back to Activity Feed
         </Text>
       </Tappable>
 
@@ -33,10 +35,12 @@ export function FeedErrorStateScreen(): React.JSX.Element {
           onPress={() => setCurrentScreenId(17)}
           accessibilityRole="link"
           accessibilityLabel="Next state: Infinite Scroll (Screen 17)"
+          style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}
         >
           <Text variant="sm" weight="semibold" color={colors['primary-color']}>
-            Next State: Infinite Scroll (Screen 17) →
+            Next State: Infinite Scroll (Screen 17)
           </Text>
+          <ArrowRight size={16} color={colors['primary-color']} />
         </Tappable>
       </View>
     </View>

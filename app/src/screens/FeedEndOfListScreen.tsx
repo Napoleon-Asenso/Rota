@@ -6,6 +6,7 @@ import { Text } from '../components/Text';
 import { Tappable } from '../components/Tappable';
 import { EndOfListState } from '../components/feed/EndOfListState';
 import { useAppStore } from '../storage/store';
+import { ArrowLeft, ArrowRight } from 'lucide-react-native';
 
 /**
  * Screen 15: Activity Feed End of List State Screen
@@ -19,10 +20,11 @@ export function FeedEndOfListScreen(): React.JSX.Element {
       <Tappable
         onPress={() => setCurrentScreenId(8)}
         accessibilityLabel="Back to activity feed"
-        style={styles.backButton}
+        style={[styles.backButton, { flexDirection: 'row', alignItems: 'center', gap: 6 }]}
       >
+        <ArrowLeft size={16} color={colors['primary-color']} />
         <Text weight="semibold" variant="sm" color={colors['primary-color']}>
-          ← Back to Activity Feed
+          Back to Activity Feed
         </Text>
       </Tappable>
 
@@ -33,10 +35,12 @@ export function FeedEndOfListScreen(): React.JSX.Element {
           onPress={() => setCurrentScreenId(16)}
           accessibilityRole="link"
           accessibilityLabel="Next state: Error State (Screen 16)"
+          style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}
         >
           <Text variant="sm" weight="semibold" color={colors['primary-color']}>
-            Next State: Error State (Screen 16) →
+            Next State: Error State (Screen 16)
           </Text>
+          <ArrowRight size={16} color={colors['primary-color']} />
         </Tappable>
       </View>
     </View>

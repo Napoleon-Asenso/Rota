@@ -8,6 +8,7 @@ import { Badge } from '../components/Badge';
 import { Tappable } from '../components/Tappable';
 import { BottomTabBar } from '../components/BottomTabBar';
 import { useAppStore } from '../storage/store';
+import { ChevronLeft, ChevronRight, Clock, MapPin, ArrowLeftRight } from 'lucide-react-native';
 
 export function ShiftCalendarScreen(): React.JSX.Element {
   const { colors } = useTheme();
@@ -80,17 +81,13 @@ export function ShiftCalendarScreen(): React.JSX.Element {
         {/* Month Header */}
         <View style={styles.monthHeaderRow}>
           <Tappable onPress={() => {}} accessibilityLabel="Previous month" style={styles.monthArrow}>
-            <Text weight="bold" variant="xl" color={colors['primary-color']} importantForAccessibility="no">
-              ‹
-            </Text>
+            <ChevronLeft size={22} color={colors['primary-color']} />
           </Tappable>
           <Text weight="bold" variant="base" color={colors['on-surface-color']} accessibilityRole="header">
             May 2026
           </Text>
           <Tappable onPress={() => {}} accessibilityLabel="Next month" style={styles.monthArrow}>
-            <Text weight="bold" variant="xl" color={colors['primary-color']} importantForAccessibility="no">
-              ›
-            </Text>
+            <ChevronRight size={22} color={colors['primary-color']} />
           </Tappable>
         </View>
 
@@ -151,7 +148,8 @@ export function ShiftCalendarScreen(): React.JSX.Element {
             style={styles.shiftSummary}
           >
           <View style={styles.shiftRow}>
-            <View style={[styles.timeBadge, { backgroundColor: colors['secondary-container-color'] }]}>
+            <View style={[styles.timeBadge, { backgroundColor: colors['secondary-container-color'], flexDirection: 'row', alignItems: 'center', gap: 6 }]}>
+              <Clock size={13} color={colors['on-secondary-container-color']} />
               <Text weight="bold" variant="sm" color={colors['on-secondary-container-color']}>
                 09:00 - 17:00
               </Text>
@@ -172,8 +170,9 @@ export function ShiftCalendarScreen(): React.JSX.Element {
           <Tappable
             onPress={() => setCurrentScreenId(9)} // Navigate to Request Shift Swap (Screen 9)
             accessibilityLabel="Request swap for this shift"
-            style={[styles.swapRequestTouch, { borderColor: colors['outline-variant-color'] }]}
+            style={[styles.swapRequestTouch, { borderColor: colors['outline-variant-color'], flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 }]}
           >
+            <ArrowLeftRight size={14} color={colors['primary-color']} />
             <Text weight="semibold" variant="sm" color={colors['primary-color']}>
               Request Swap
             </Text>

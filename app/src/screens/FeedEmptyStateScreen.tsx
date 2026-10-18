@@ -6,6 +6,7 @@ import { Text } from '../components/Text';
 import { Tappable } from '../components/Tappable';
 import { EmptyState } from '../components/feed/EmptyState';
 import { useAppStore } from '../storage/store';
+import { ArrowLeft, ArrowRight } from 'lucide-react-native';
 
 /**
  * Screen 14: Activity Feed Empty State Screen
@@ -19,10 +20,11 @@ export function FeedEmptyStateScreen(): React.JSX.Element {
       <Tappable
         onPress={() => setCurrentScreenId(8)}
         accessibilityLabel="Back to activity feed"
-        style={styles.backButton}
+        style={[styles.backButton, { flexDirection: 'row', alignItems: 'center', gap: 6 }]}
       >
+        <ArrowLeft size={16} color={colors['primary-color']} />
         <Text weight="semibold" variant="sm" color={colors['primary-color']}>
-          ← Back to Activity Feed
+          Back to Activity Feed
         </Text>
       </Tappable>
 
@@ -33,10 +35,12 @@ export function FeedEmptyStateScreen(): React.JSX.Element {
           onPress={() => setCurrentScreenId(15)}
           accessibilityRole="link"
           accessibilityLabel="Next state: End of List (Screen 15)"
+          style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}
         >
           <Text variant="sm" weight="semibold" color={colors['primary-color']}>
-            Next State: End of List (Screen 15) →
+            Next State: End of List (Screen 15)
           </Text>
+          <ArrowRight size={16} color={colors['primary-color']} />
         </Tappable>
       </View>
     </View>

@@ -7,6 +7,7 @@ import { Card } from '../components/Card';
 import { Button } from '../components/Button';
 import { Badge } from '../components/Badge';
 import { useAppStore } from '../storage/store';
+import { Check, CreditCard, ArrowLeft } from 'lucide-react-native';
 
 export function SubscriptionBillingScreen(): React.JSX.Element {
   const { colors } = useTheme();
@@ -61,9 +62,7 @@ export function SubscriptionBillingScreen(): React.JSX.Element {
                 accessibilityElementsHidden
                 importantForAccessibility="no-hide-descendants"
               >
-                <Text weight="bold" variant="xs" color={colors['on-secondary-container-color']}>
-                  ✓
-                </Text>
+                <Check size={13} color={colors['on-secondary-container-color']} />
               </View>
               <Text variant="sm" weight="medium" color={colors['on-surface-color']}>
                 {feature}

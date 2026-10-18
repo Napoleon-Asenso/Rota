@@ -4,6 +4,7 @@ import { useTheme } from '../../theme/ThemeContext';
 import { tokens } from '../../theme/tokens';
 import { Text } from '../Text';
 import { Button } from '../Button';
+import { AlertTriangle } from 'lucide-react-native';
 
 export interface ErrorStateProps {
   onRetry?: () => void;
@@ -37,14 +38,7 @@ export function ErrorState({ onRetry, style }: ErrorStateProps): React.JSX.Eleme
         accessibilityElementsHidden
         importantForAccessibility="no-hide-descendants"
       >
-        <Text
-          weight="bold"
-          variant="3xl"
-          color={colors['on-error-container-color']}
-          importantForAccessibility="no"
-        >
-          ⚠️
-        </Text>
+        <AlertTriangle size={36} color={colors['error-color'] || '#EF4444'} />
       </View>
 
       <Text

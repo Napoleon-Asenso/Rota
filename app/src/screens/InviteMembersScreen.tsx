@@ -9,7 +9,7 @@ import { Card } from '../components/Card';
 import { Input } from '../components/Input';
 import { Tappable } from '../components/Tappable';
 import { useAppNavigation } from '../navigation';
-import { ArrowLeft } from 'lucide-react-native';
+import { ArrowLeft, Mail, Link, Copy } from 'lucide-react-native';
 
 interface Invitee {
   id: string;
@@ -103,9 +103,11 @@ export function InviteMembersScreen(): React.JSX.Element {
           accessibilityState={{ selected: activeTab === 'Email' }}
           style={[
             styles.segmentBtn,
+            { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
             activeTab === 'Email' && { backgroundColor: colors['surface-container-lowest-color'] }
           ]}
         >
+          <Mail size={16} color={activeTab === 'Email' ? colors['primary-color'] : colors['on-surface-variant-color']} />
           <Text
             weight={activeTab === 'Email' ? 'semibold' : 'regular'}
             variant="sm"
@@ -122,9 +124,11 @@ export function InviteMembersScreen(): React.JSX.Element {
           accessibilityState={{ selected: activeTab === 'Share Link' }}
           style={[
             styles.segmentBtn,
+            { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
             activeTab === 'Share Link' && { backgroundColor: colors['surface-container-lowest-color'] }
           ]}
         >
+          <Link size={16} color={activeTab === 'Share Link' ? colors['primary-color'] : colors['on-surface-variant-color']} />
           <Text
             weight={activeTab === 'Share Link' ? 'semibold' : 'regular'}
             variant="sm"
@@ -148,6 +152,7 @@ export function InviteMembersScreen(): React.JSX.Element {
               keyboardType="email-address"
               autoCapitalize="none"
               placeholder="e.g. jane@company.com"
+              leftIcon={<Mail size={18} color={colors['outline-color']} />}
             />
             <Button
               title="Send Invite"

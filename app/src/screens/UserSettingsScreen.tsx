@@ -9,7 +9,7 @@ import { BottomTabBar } from '../components/BottomTabBar';
 import { PushNotificationModal } from '../components/PushNotificationModal';
 import { useAppStore } from '../storage/store';
 import { authApi } from '../services/api';
-import { ArrowLeft, Shield, Bell, Sun, RefreshCw, CloudOff, HelpCircle, LogOut } from 'lucide-react-native';
+import { ArrowLeft, Shield, Bell, Sun, RefreshCw, CloudOff, HelpCircle, LogOut, ChevronRight } from 'lucide-react-native';
 
 /**
  * Clean Geometric Vector Icons for Settings Menu Rows
@@ -135,9 +135,7 @@ export function UserSettingsScreen(): React.JSX.Element {
                 Account & Security
               </Text>
             </View>
-            <Text variant="base" color={colors['outline-color']} importantForAccessibility="no">
-              ›
-            </Text>
+            <ChevronRight size={18} color={colors['outline-color']} />
           </Pressable>
 
           <View style={[styles.divider, { backgroundColor: colors['outline-variant-color'] }]} />
@@ -156,9 +154,7 @@ export function UserSettingsScreen(): React.JSX.Element {
                 Notifications
               </Text>
             </View>
-            <Text variant="base" color={colors['outline-color']} importantForAccessibility="no">
-              ›
-            </Text>
+            <ChevronRight size={18} color={colors['outline-color']} />
           </Pressable>
 
           <View style={[styles.divider, { backgroundColor: colors['outline-variant-color'] }]} />
@@ -177,9 +173,7 @@ export function UserSettingsScreen(): React.JSX.Element {
                 Appearance ({mode === 'dark' ? 'Dark' : 'Light'})
               </Text>
             </View>
-            <Text variant="base" color={colors['outline-color']} importantForAccessibility="no">
-              ›
-            </Text>
+            <ChevronRight size={18} color={colors['outline-color']} />
           </Pressable>
 
           <View style={[styles.divider, { backgroundColor: colors['outline-variant-color'] }]} />
@@ -199,9 +193,7 @@ export function UserSettingsScreen(): React.JSX.Element {
             </View>
             <View style={styles.menuRightBadge}>
               <Badge label="On" tone="blue" />
-              <Text variant="base" color={colors['outline-color']} importantForAccessibility="no">
-                ›
-              </Text>
+              <ChevronRight size={18} color={colors['outline-color']} />
             </View>
           </Pressable>
 
@@ -226,9 +218,7 @@ export function UserSettingsScreen(): React.JSX.Element {
                 </Text>
               </View>
             </View>
-            <Text variant="base" color={colors['outline-color']} importantForAccessibility="no">
-              ›
-            </Text>
+            <ChevronRight size={18} color={colors['outline-color']} />
           </Pressable>
 
           <View style={[styles.divider, { backgroundColor: colors['outline-variant-color'] }]} />
@@ -246,9 +236,7 @@ export function UserSettingsScreen(): React.JSX.Element {
                 Help & Support
               </Text>
             </View>
-            <Text variant="base" color={colors['outline-color']} importantForAccessibility="no">
-              ›
-            </Text>
+            <ChevronRight size={18} color={colors['outline-color']} />
           </Pressable>
         </Card>
 
@@ -272,9 +260,7 @@ export function UserSettingsScreen(): React.JSX.Element {
               Log Out
             </Text>
           </View>
-          <Text variant="base" color="#EF4444" importantForAccessibility="no">
-            ›
-          </Text>
+          <ChevronRight size={18} color="#EF4444" />
         </Pressable>
 
         {/* Simulation Banner Trigger Preview */}

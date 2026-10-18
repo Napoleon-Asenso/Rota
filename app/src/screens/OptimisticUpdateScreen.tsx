@@ -8,6 +8,7 @@ import { Badge } from '../components/Badge';
 import { Button } from '../components/Button';
 import { Tappable } from '../components/Tappable';
 import { useAppStore } from '../storage/store';
+import { ArrowLeft, ArrowRight, Clock } from 'lucide-react-native';
 
 export function OptimisticUpdateScreen(): React.JSX.Element {
   const { colors } = useTheme();
@@ -22,12 +23,13 @@ export function OptimisticUpdateScreen(): React.JSX.Element {
     >
       <Tappable
         onPress={() => setCurrentScreenId(7)}
-        style={styles.backButton}
+        style={[styles.backButton, { flexDirection: 'row', alignItems: 'center', gap: 6 }]}
         accessibilityRole="button"
         accessibilityLabel="Back to Schedule"
       >
+        <ArrowLeft size={18} color={colors['primary-color']} />
         <Text weight="semibold" variant="sm" color={colors['primary-color']}>
-          ← Back to Schedule
+          Back to Schedule
         </Text>
       </Tappable>
 
@@ -130,13 +132,14 @@ export function OptimisticUpdateScreen(): React.JSX.Element {
 
       <Tappable
         onPress={() => setCurrentScreenId(19)}
-        style={styles.nextLink}
+        style={[styles.nextLink, { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 }]}
         accessibilityRole="button"
         accessibilityLabel="Go to Screen 19: Swap Review and Manager Approval"
       >
         <Text variant="sm" weight="semibold" color={colors['primary-color']}>
-          Screen 19: Swap Review / Manager Approval →
+          Screen 19: Swap Review / Manager Approval
         </Text>
+        <ArrowRight size={16} color={colors['primary-color']} />
       </Tappable>
     </ScrollView>
   );

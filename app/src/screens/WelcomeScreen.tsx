@@ -11,6 +11,7 @@ import { tokens } from '../theme/tokens';
 import { Text } from '../components/Text';
 import { RotaLogo } from '../components/RotaLogo';
 import { useAppStore } from '../storage/store';
+import { UserPlus, LogIn } from 'lucide-react-native';
 
 /**
  * Splash & Welcome Onboarding Screen.
@@ -274,11 +275,12 @@ export function WelcomeScreen(): React.JSX.Element {
             {/* Primary Pill Button: Create new account (Screen 2: Sign Up) */}
             <TouchableOpacity
               onPress={() => setCurrentScreenId(2)}
-              style={styles.primaryPillButton}
+              style={[styles.primaryPillButton, { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }]}
               activeOpacity={0.88}
               accessibilityRole="button"
               accessibilityLabel="Create new account"
             >
+              <UserPlus size={18} color="#FFFFFF" />
               <Text weight="bold" variant="base" color="#FFFFFF">
                 Create new account
               </Text>
@@ -287,11 +289,12 @@ export function WelcomeScreen(): React.JSX.Element {
             {/* Secondary Dark Pill Button: Log In (Screen 3: Log In) */}
             <TouchableOpacity
               onPress={() => setCurrentScreenId(3)}
-              style={styles.secondaryPillButton}
+              style={[styles.secondaryPillButton, { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }]}
               activeOpacity={0.85}
               accessibilityRole="button"
               accessibilityLabel="Log in to existing account"
             >
+              <LogIn size={18} color="#F1F5F9" />
               <Text weight="semibold" variant="base" color="#F1F5F9">
                 Log In
               </Text>

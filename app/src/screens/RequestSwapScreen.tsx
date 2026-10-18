@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, TextInput, ScrollView } from 'react-native';
+import { View, StyleSheet, TextInput, ScrollView, Platform } from 'react-native';
 import { useTheme } from '../theme/ThemeContext';
 import { tokens } from '../theme/tokens';
 import { Text } from '../components/Text';
@@ -9,6 +9,7 @@ import { Button } from '../components/Button';
 import { Tappable } from '../components/Tappable';
 import { useAppStore } from '../storage/store';
 import { useShiftSwaps } from '../hooks/useShiftSwaps';
+import { ArrowLeft, ArrowLeftRight, Clock } from 'lucide-react-native';
 
 export function RequestSwapScreen(): React.JSX.Element {
   const { colors } = useTheme();
@@ -44,10 +45,11 @@ export function RequestSwapScreen(): React.JSX.Element {
         <Tappable
           onPress={() => setCurrentScreenId(7)}
           accessibilityLabel="Back to schedule"
-          style={styles.backButton}
+          style={[styles.backButton, { flexDirection: 'row', alignItems: 'center', gap: 6 }]}
         >
+          <ArrowLeft size={18} color={colors['primary-color']} />
           <Text weight="semibold" variant="base" color={colors['primary-color']}>
-            ← Back
+            Back
           </Text>
         </Tappable>
         <Text weight="bold" variant="3xl" color={colors['on-background-color']} style={styles.title} accessibilityRole="header">
@@ -68,7 +70,8 @@ export function RequestSwapScreen(): React.JSX.Element {
           <Text weight="bold" variant="lg" color={colors['on-surface-color']}>
             Tuesday, May 12, 2026
           </Text>
-          <View style={[styles.timePill, { backgroundColor: colors['secondary-container-color'] }]}>
+          <View style={[styles.timePill, { backgroundColor: colors['secondary-container-color'], flexDirection: 'row', alignItems: 'center', gap: 4 }]}>
+            <Clock size={12} color={colors['on-secondary-container-color']} />
             <Text weight="semibold" variant="xs" color={colors['on-secondary-container-color']}>
               09:00 - 17:00
             </Text>
@@ -216,7 +219,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: tokens.spacing[4],
     paddingTop: tokens.spacing[3],
     fontSize: tokens.typography.size.base,
-    textAlignVertical: 'top'
+    textAlignVertical: 'top',
+    ...(Platform.OS === 'web' ? ({ outlineStyle: 'none', outlineWidth: 0 } as any) : {})
   },
   sendButton: {
     marginTop: tokens.spacing[6]

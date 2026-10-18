@@ -7,6 +7,7 @@ import { Card } from '../components/Card';
 import { Tappable } from '../components/Tappable';
 import { InfiniteScrollFooter } from '../components/feed/InfiniteScrollFooter';
 import { useAppStore } from '../storage/store';
+import { ArrowLeft, ArrowRight } from 'lucide-react-native';
 
 export function FeedInfiniteScrollScreen(): React.JSX.Element {
   const { colors } = useTheme();
@@ -25,12 +26,13 @@ export function FeedInfiniteScrollScreen(): React.JSX.Element {
       <ScrollView contentContainerStyle={styles.container}>
         <Tappable
           onPress={() => setCurrentScreenId(8)}
-          style={styles.backButton}
+          style={[styles.backButton, { flexDirection: 'row', alignItems: 'center', gap: 6 }]}
           accessibilityRole="button"
           accessibilityLabel="Back to Activity Feed"
         >
+          <ArrowLeft size={16} color={colors['primary-color']} />
           <Text weight="semibold" variant="sm" color={colors['primary-color']}>
-            ← Back to Activity Feed
+            Back to Activity Feed
           </Text>
         </Tappable>
 
@@ -83,13 +85,14 @@ export function FeedInfiniteScrollScreen(): React.JSX.Element {
 
         <Tappable
           onPress={() => setCurrentScreenId(18)}
-          style={styles.nextLink}
+          style={[styles.nextLink, { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 }]}
           accessibilityRole="button"
           accessibilityLabel="Go to Screen 18: Optimistic Update"
         >
           <Text variant="sm" weight="semibold" color={colors['primary-color']}>
-            Next Screen: Optimistic Update (Screen 18) →
+            Next Screen: Optimistic Update (Screen 18)
           </Text>
+          <ArrowRight size={16} color={colors['primary-color']} />
         </Tappable>
       </ScrollView>
     </View>

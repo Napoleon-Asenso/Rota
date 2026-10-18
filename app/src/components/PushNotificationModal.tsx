@@ -12,6 +12,7 @@ import { tokens } from '../theme/tokens';
 import { Text } from './Text';
 import { RotaLogo } from './RotaLogo';
 import { useAppStore } from '../storage/store';
+import { X } from 'lucide-react-native';
 
 export interface PushNotificationModalProps {
   visible: boolean;
@@ -134,9 +135,7 @@ export function PushNotificationModal({
               hitSlop={8}
               style={styles.closeBtn}
             >
-              <Text variant="xs" weight="bold" color={colors['outline-color']}>
-                ✕
-              </Text>
+              <X size={14} color={colors['outline-color']} />
             </Pressable>
           </View>
         </View>
