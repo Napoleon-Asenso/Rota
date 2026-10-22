@@ -124,6 +124,14 @@ export interface AuthResponse {
   };
 }
 
+export interface PasswordRequirementItem {
+  id: string;
+  label: string;
+  rule: 'MIN_LENGTH' | 'UPPERCASE' | 'LOWERCASE' | 'NUMBER' | 'SPECIAL_CHAR' | string;
+  minLength?: number;
+  regex?: string;
+}
+
 export const authApi = {
   async register(
     fullName: string,
@@ -196,6 +204,24 @@ export const authApi = {
   async getMe(): Promise<{ success: boolean; data: AuthUser }> {
     const res = await apiClient.get<{ success: boolean; data: AuthUser }>('/api/auth/me');
     return res.data;
+  },
+
+  async getPasswordRequirements(): Promise<PasswordRequirementItem[]> {
+    try {
+      const res = await apiClient.get<{
+        success: boolean;
+        data: { requirements: PasswordRequirementItem[] };
+      }>('/api/auth/password-requirements');
+      return res.data.data.requirements;
+    } catch {
+      return [
+        { id: 'req-min-length', label: 'Min of 8 characters', rule: 'MIN_LENGTH', minLength: 8 },
+        { id: 'req-uppercase', label: '1 uppercase', rule: 'UPPERCASE', regex: '[A-Z]' },
+        { id: 'req-lowercase', label: '1 lowercase', rule: 'LOWERCASE', regex: '[a-z]' },
+        { id: 'req-number', label: '1 number', rule: 'NUMBER', regex: '[0-9]' },
+        { id: 'req-special', label: '1 special character', rule: 'SPECIAL_CHAR', regex: '[^A-Za-z0-9]' }
+      ];
+    }
   }
 };
 

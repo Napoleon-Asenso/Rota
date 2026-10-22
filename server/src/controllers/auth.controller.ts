@@ -1,9 +1,16 @@
 import { Request, Response } from 'express';
 import crypto from 'crypto';
-import bcrypt from 'bcryptjs';
 import { PrismaClient, Role } from '@prisma/client';
 import { registerSchema, loginSchema, refreshTokenSchema, forgotPasswordSchema } from '../schemas/auth';
 import { signAccessToken } from '../utils/jwt';
+import {
+  hashPassword,
+  verifyPassword,
+  hashToken,
+  CANONICAL_PASSWORD_REQUIREMENTS,
+  evaluatePasswordRequirements
+} from '../utils/security';
+export { hashToken };
 import { AuthenticatedRequest } from '../types';
 import { store } from '../services/store.service';
 
@@ -17,9 +24,7 @@ interface GraceRecord {
 }
 const graceWindowCache = new Map<string, GraceRecord>();
 
-export function hashToken(token: string): string {
-  return crypto.createHash('sha256').update(token).digest('hex');
-}
+
 
 export function generateSecureToken(): string {
   return crypto.randomBytes(64).toString('hex');
@@ -73,8 +78,23 @@ export async function registerHandler(req: Request, res: Response): Promise<void
       });
       return;
     }
+    // Enforce all 5 canonical password requirements on the server
+    const passwordEvaluation = evaluatePasswordRequirements(password);
+    if (!passwordEvaluation.isValid) {
+      res.status(400).json({
+        success: false,
+        error: {
+          code: 'PASSWORD_REQUIREMENTS_UNMET',
+          message: 'Password does not meet all security requirements.',
+          details: {
+            unmetRequirements: passwordEvaluation.unmetRequirements
+          }
+        }
+      });
+      return;
+    }
 
-    const passwordHash = await bcrypt.hash(password, 10);
+    const passwordHash = await hashPassword(password);
 
     // Create user and team transactionally
     let teamId: string;
@@ -235,8 +255,8 @@ export async function loginHandler(req: Request, res: Response): Promise<void> {
       return;
     }
 
-    // Verify password hash
-    const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
+    // Verify password hash using constant-time comparison
+    const isPasswordValid = await verifyPassword(password, user.passwordHash);
     if (!isPasswordValid) {
       res.status(401).json({
         success: false,
@@ -695,3 +715,17 @@ export async function forgotPasswordHandler(req: Request, res: Response): Promis
     });
   }
 }
+
+/**
+ * GET /api/auth/password-requirements
+ * Serves canonical password requirements directly from the server.
+ */
+export function passwordRequirementsHandler(_req: Request, res: Response): void {
+  res.status(200).json({
+    success: true,
+    data: {
+      requirements: CANONICAL_PASSWORD_REQUIREMENTS
+    }
+  });
+}
+

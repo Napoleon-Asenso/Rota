@@ -1,22 +1,8 @@
 import { Response } from 'express';
 import crypto from 'crypto';
-import { z } from 'zod';
 import { AuthenticatedRequest, ShiftStatus } from '../types';
 import { store, ShiftRecord } from '../services/store.service';
-
-const CreateShiftSchema = z.object({
-  assignedToId: z.string().optional().nullable(),
-  roleTitle: z.string().min(1),
-  venue: z.string().default('Main Floor'),
-  startTime: z.string().datetime(),
-  endTime: z.string().datetime(),
-  notes: z.string().optional(),
-  status: z.enum(['DRAFT', 'PUBLISHED']).default('DRAFT')
-});
-
-const PublishShiftsSchema = z.object({
-  shiftIds: z.array(z.string())
-});
+import { CreateShiftSchema, PublishShiftsSchema } from '../schemas/shifts';
 
 export function listShiftsHandler(req: AuthenticatedRequest, res: Response): void {
   const teamId = req.tenant?.teamId || 'team-rota-main';
@@ -68,7 +54,7 @@ export function createShiftHandler(req: AuthenticatedRequest, res: Response): vo
     assignedToName: assignedUser?.fullName,
     createdById,
     roleTitle: data.roleTitle,
-    venue: data.venue,
+    venue: data.venue || data.location || 'Main Floor',
     startTime: data.startTime,
     endTime: data.endTime,
     status: data.status as ShiftStatus,

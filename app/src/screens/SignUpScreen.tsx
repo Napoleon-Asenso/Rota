@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, Pressable } from 'react-native';
 import { useTheme } from '../theme/ThemeContext';
 import { tokens } from '../theme/tokens';
@@ -14,9 +14,10 @@ import { ArrowLeft } from 'lucide-react-native';
  * Features:
  * - Back arrow navigation (44pt touch target)
  * - Accessible Input fields with password visibility toggle
+ * - Dynamic server-driven password requirements fetched from GET /api/auth/password-requirements
  * - Navigation to Invite Team Members on submission
  */
-import { authApi } from '../services/api';
+import { authApi, PasswordRequirementItem } from '../services/api';
 
 import { validateEmailRealtime, validateEmailSubmit } from '../utils/validators';
 
@@ -32,6 +33,65 @@ export function SignUpScreen(): React.JSX.Element {
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Canonical password requirements fetched dynamically from the server endpoint GET /api/auth/password-requirements
+  const [requirementsList, setRequirementsList] = useState<PasswordRequirementItem[]>([
+    { id: 'req-min-length', label: 'Min of 8 characters', rule: 'MIN_LENGTH', minLength: 8 },
+    { id: 'req-uppercase', label: '1 uppercase', rule: 'UPPERCASE', regex: '[A-Z]' },
+    { id: 'req-lowercase', label: '1 lowercase', rule: 'LOWERCASE', regex: '[a-z]' },
+    { id: 'req-number', label: '1 number', rule: 'NUMBER', regex: '[0-9]' },
+    { id: 'req-special', label: '1 special character', rule: 'SPECIAL_CHAR', regex: '[^A-Za-z0-9]' }
+  ]);
+
+  useEffect(() => {
+    let isMounted = true;
+    authApi.getPasswordRequirements()
+      .then((reqs) => {
+        if (isMounted && Array.isArray(reqs) && reqs.length > 0) {
+          setRequirementsList(reqs);
+        }
+      })
+      .catch(() => {
+        // Keeps default server-canonical rules if offline or delayed
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Server-driven rule evaluation helper
+  const checkRequirementMet = (req: PasswordRequirementItem, text: string): boolean => {
+    if (req.rule === 'MIN_LENGTH') {
+      return text.length >= (req.minLength ?? 8);
+    }
+    if (req.regex) {
+      try {
+        const re = new RegExp(req.regex);
+        return re.test(text);
+      } catch {
+        // Fallback
+      }
+    }
+    if (req.rule === 'UPPERCASE') return /[A-Z]/.test(text);
+    if (req.rule === 'LOWERCASE') return /[a-z]/.test(text);
+    if (req.rule === 'NUMBER') return /[0-9]/.test(text);
+    if (req.rule === 'SPECIAL_CHAR') return /[^A-Za-z0-9]/.test(text);
+    return false;
+  };
+
+  const evaluatedRequirements = requirementsList.map((req) => ({
+    ...req,
+    met: checkRequirementMet(req, password)
+  }));
+
+  const unmetRequirements = evaluatedRequirements.filter((req) => !req.met);
+
+  const isPasswordValid =
+    unmetRequirements.length === 0 &&
+    password.length > 0 &&
+    !passwordError;
+
+  const mutedGray = colors['outline-color'];
 
   const validateFullName = (text: string): string | null => {
     // 1. Only letters and spaces are allowed
@@ -109,8 +169,8 @@ export function SignUpScreen(): React.JSX.Element {
       setEmailError(null);
     }
 
-    if (!password.trim()) {
-      setPasswordError('Password is required');
+    if (unmetRequirements.length > 0) {
+      setPasswordError('Please meet all password requirements before creating your account.');
       hasError = true;
     } else {
       setPasswordError(null);
@@ -135,12 +195,33 @@ export function SignUpScreen(): React.JSX.Element {
       });
       navigation.goToInviteMembers();
     } catch (err: unknown) {
-      const errorObj = err as { response?: { data?: { error?: { message?: string } } }; message?: string };
-      const msg =
-        errorObj.response?.data?.error?.message ||
-        errorObj.message ||
-        'Registration failed. Please check your information.';
-      setErrorMessage(msg);
+      const errorObj = err as {
+        response?: {
+          data?: {
+            error?: {
+              code?: string;
+              message?: string;
+              details?: {
+                unmetRequirements?: Array<{ id: string; label: string }>;
+              };
+            };
+          };
+        };
+        message?: string;
+      };
+
+      const serverError = errorObj.response?.data?.error;
+      if (serverError?.code === 'PASSWORD_REQUIREMENTS_UNMET' && serverError.details?.unmetRequirements) {
+        const unmetText = serverError.details.unmetRequirements.map((r) => r.label).join(', ');
+        setPasswordError(`Password must meet all server requirements: ${unmetText}`);
+        setErrorMessage(serverError.message || 'Password does not meet all security requirements.');
+      } else {
+        const msg =
+          serverError?.message ||
+          errorObj.message ||
+          'Registration failed. Please check your information.';
+        setErrorMessage(msg);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -156,10 +237,6 @@ export function SignUpScreen(): React.JSX.Element {
     email.trim().length > 0 &&
     !emailError &&
     !validateEmailSubmit(email);
-
-  const isPasswordValid =
-    password.trim().length >= 8 &&
-    !passwordError;
 
   const isFormComplete = Boolean(isFullNameValid && isEmailValid && isPasswordValid);
 
@@ -226,20 +303,54 @@ export function SignUpScreen(): React.JSX.Element {
           autoCapitalize="none"
         />
 
-        <Input
-          label="Password"
-          value={password}
-          onChangeText={(text) => {
-            setPassword(text);
-            if (passwordError) setPasswordError(null);
-            if (errorMessage) setErrorMessage(null);
-          }}
-          error={passwordError || undefined}
-          accessibilityLabel="Password"
-          autoComplete="new-password"
-          textContentType="newPassword"
-          isPassword
-        />
+        <View style={styles.passwordGroup}>
+          <Input
+            label="Password"
+            value={password}
+            onChangeText={(text) => {
+              setPassword(text);
+              if (passwordError) setPasswordError(null);
+              if (errorMessage) setErrorMessage(null);
+            }}
+            error={passwordError || undefined}
+            accessibilityLabel="Password"
+            accessibilityHint="Password must have a minimum of 8 characters, at least 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character."
+            ariaDescribedBy={unmetRequirements.length > 0 ? 'password-requirements' : undefined}
+            autoComplete="new-password"
+            textContentType="newPassword"
+            isPassword
+          />
+
+          {/* Live Inline Password Requirements - Only show unmet requirements */}
+          {unmetRequirements.length > 0 ? (
+            <View
+              id="password-requirements"
+              nativeID="password-requirements"
+              style={styles.passwordRulesContainer}
+              accessibilityRole="summary"
+              accessibilityLabel={`Password requirements remaining: ${unmetRequirements.map((r) => r.label).join(', ')}`}
+            >
+              {unmetRequirements.map((req) => (
+                <View key={req.id} style={styles.passwordRuleRow}>
+                  <View
+                    style={[
+                      styles.ruleDot,
+                      { backgroundColor: mutedGray }
+                    ]}
+                  />
+                  <Text
+                    variant="xs"
+                    weight="regular"
+                    color={mutedGray}
+                    style={styles.ruleLabel}
+                  >
+                    {req.label}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          ) : null}
+        </View>
 
         {/* Error Notice */}
         {errorMessage ? (
@@ -335,6 +446,27 @@ const styles = StyleSheet.create({
   },
   form: {
     gap: tokens.spacing[4]
+  },
+  passwordGroup: {
+    gap: tokens.spacing[1]
+  },
+  passwordRulesContainer: {
+    gap: tokens.spacing[1.5],
+    paddingLeft: tokens.spacing[1],
+    marginTop: tokens.spacing[1]
+  },
+  passwordRuleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: tokens.spacing[2]
+  },
+  ruleDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3
+  },
+  ruleLabel: {
+    lineHeight: 16
   },
   errorContainer: {
     marginTop: tokens.spacing[1]

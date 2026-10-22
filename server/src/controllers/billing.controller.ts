@@ -1,25 +1,10 @@
 import { Request, Response } from 'express';
-import { z } from 'zod';
 import { AuthenticatedRequest } from '../types';
 import { prisma } from '../db/prisma';
 import { PLANS, PlanTierName } from '../services/billingConstants';
 import { purchaseAdditionalSeats, verifySeatCapacity } from '../services/seatEnforcement.service';
 import { processWebhookIdempotent, verifyWebhookSignature } from '../services/webhookIdempotency.service';
-
-const UpdateSeatsSchema = z.object({
-  additionalSeats: z.number().int().min(1, 'additionalSeats must be at least 1'),
-  idempotencyKey: z.string().optional()
-});
-
-const WebhookBodySchema = z.object({
-  event: z.string(),
-  data: z.object({
-    tx_ref: z.string(),
-    amount: z.number(), // in major units or integer
-    status: z.string()
-  }),
-  teamId: z.string().optional()
-});
+import { UpdateSeatsSchema, WebhookBodySchema } from '../schemas/billing';
 
 export async function getSubscriptionHandler(req: AuthenticatedRequest, res: Response): Promise<void> {
   const teamId = (req.params.teamId as string) || req.user?.teamId || req.tenant?.teamId || 'team-rota-main';

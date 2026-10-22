@@ -2,6 +2,7 @@ import React from 'react';
 import { View, StyleSheet, SafeAreaView, Platform } from 'react-native';
 import { ThemeProvider, useTheme } from './src/theme/ThemeContext';
 import { useAppStore } from './src/storage/store';
+import { QueryProvider } from './src/providers/QueryProvider';
 
 // Ensure html, body, and root containers occupy 100vh on web
 if (Platform.OS === 'web' && typeof document !== 'undefined') {
@@ -122,26 +123,13 @@ function MainContent(): React.JSX.Element {
     </SafeAreaView>
   );
 }
-
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 1,
-      refetchOnWindowFocus: false,
-      staleTime: 1000 * 30
-    }
-  }
-});
-
 export default function App(): React.JSX.Element {
   return (
-    <QueryClientProvider client={queryClient}>
+    <QueryProvider>
       <ThemeProvider>
         <MainContent />
       </ThemeProvider>
-    </QueryClientProvider>
+    </QueryProvider>
   );
 }
 

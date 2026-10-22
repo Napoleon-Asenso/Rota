@@ -31,12 +31,14 @@ export interface InputProps extends Omit<TextInputProps, 'style'> {
   inputStyle?: StyleProp<TextStyle>;
   accessibilityLabel?: string;
   accessibilityHint?: string;
+  ariaDescribedBy?: string;
 }
 
 /**
  * Accessible Input primitive matching design tokens:
  * - Programmatically connected labels via nativeID, aria-labelledby, and tap-to-focus
  * - Automatically trims leading spaces in real time and trailing spaces on blur
+ * - Screen-reader aria-describedby and accessibilityHint bindings
  * - Client-side validation: displays error beneath input when field is left empty after focus
  * - Error stroke matches design system error token
  * - Standard or Floating label
@@ -67,6 +69,7 @@ export const Input = React.forwardRef<TextInput, InputProps>(function Input(
     placeholder,
     accessibilityLabel,
     accessibilityHint,
+    ariaDescribedBy,
     secureTextEntry,
     onFocus,
     onBlur,
@@ -243,6 +246,8 @@ export const Input = React.forwardRef<TextInput, InputProps>(function Input(
               : accessibilityHint
           }
           aria-invalid={Boolean(computedError)}
+          aria-describedby={ariaDescribedBy}
+          {...(Platform.OS === 'web' && ariaDescribedBy ? ({ 'aria-describedby': ariaDescribedBy } as any) : {})}
           textAlignVertical="center"
           style={[
             styles.nativeInput,

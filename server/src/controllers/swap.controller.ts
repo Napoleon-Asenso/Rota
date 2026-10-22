@@ -1,20 +1,8 @@
 import { Response } from 'express';
 import crypto from 'crypto';
-import { z } from 'zod';
 import { AuthenticatedRequest, SwapStatus } from '../types';
 import { store, SwapRecord } from '../services/store.service';
-
-const CreateSwapSchema = z.object({
-  sourceShiftId: z.string(),
-  targetShiftId: z.string().optional().nullable(),
-  targetUserId: z.string().optional().nullable(),
-  notes: z.string().optional()
-});
-
-const ReviewSwapSchema = z.object({
-  action: z.enum(['APPROVE', 'DENY']),
-  reason: z.string().optional()
-});
+import { CreateSwapSchema, ReviewSwapSchema } from '../schemas/swaps';
 
 export function listSwapsHandler(req: AuthenticatedRequest, res: Response): void {
   const teamId = req.tenant?.teamId || 'team-rota-main';
@@ -28,13 +16,14 @@ export function listSwapsHandler(req: AuthenticatedRequest, res: Response): void
 
 export function createSwapHandler(req: AuthenticatedRequest, res: Response): void {
   const data = CreateSwapSchema.parse(req.body);
+  const sourceShiftId = (data.sourceShiftId || data.shiftId)!;
   const teamId = req.tenant?.teamId || 'team-rota-main';
   const initiatorId = req.tenant?.userId || 'user-emeka-1';
 
   // Verify Single Active Swap Invariant
   for (const swap of store.swaps.values()) {
     if (
-      swap.sourceShiftId === data.sourceShiftId &&
+      swap.sourceShiftId === sourceShiftId &&
       ['OPEN_FOR_CLAIM', 'PENDING_PEER_APPROVAL', 'PENDING_MANAGER_APPROVAL'].includes(swap.status)
     ) {
       res.status(409).json({
@@ -48,7 +37,7 @@ export function createSwapHandler(req: AuthenticatedRequest, res: Response): voi
     }
   }
 
-  const shift = store.shifts.get(data.sourceShiftId);
+  const shift = store.shifts.get(sourceShiftId);
   const initiator = store.users.get(initiatorId);
   const targetUser = data.targetUserId ? store.users.get(data.targetUserId) : null;
 
@@ -57,7 +46,7 @@ export function createSwapHandler(req: AuthenticatedRequest, res: Response): voi
   const newSwap: SwapRecord = {
     id: crypto.randomUUID(),
     teamId,
-    sourceShiftId: data.sourceShiftId,
+    sourceShiftId,
     targetShiftId: data.targetShiftId || null,
     initiatorUserId: initiatorId,
     initiatorName: initiator?.fullName || 'Emeka Okafor',

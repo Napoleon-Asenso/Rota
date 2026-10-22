@@ -17,7 +17,14 @@ export const registerSchema = z.object({
   middleName: z.string().trim().nullable().optional(),
   lastName: z.string().trim().optional(),
   email: z.string().trim().email('Invalid email address'),
-  password: z.string().trim().min(8, 'Password must be at least 8 characters long'),
+  password: z
+    .string()
+    .trim()
+    .min(8, 'Password must be at least 8 characters long')
+    .refine((val) => /[A-Z]/.test(val), 'Password must contain at least 1 uppercase letter')
+    .refine((val) => /[a-z]/.test(val), 'Password must contain at least 1 lowercase letter')
+    .refine((val) => /[0-9]/.test(val), 'Password must contain at least 1 number')
+    .refine((val) => /[^A-Za-z0-9]/.test(val), 'Password must contain at least 1 special character'),
   inviteToken: z.string().trim().optional()
 });
 

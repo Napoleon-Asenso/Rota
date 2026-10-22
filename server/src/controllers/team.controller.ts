@@ -1,17 +1,12 @@
 import { Response } from 'express';
 import crypto from 'crypto';
-import { z } from 'zod';
 import { AuthenticatedRequest } from '../types';
 import { store, MemberRecord } from '../services/store.service';
-
-const InviteMemberSchema = z.object({
-  email: z.string().email(),
-  role: z.enum(['OWNER', 'MANAGER', 'STAFF']).default('STAFF')
-});
+import { InviteMemberSchema } from '../schemas/teams';
 
 export function listMembersHandler(req: AuthenticatedRequest, res: Response): void {
   const teamId = (req.params.teamId as string) || req.tenant?.teamId || 'team-rota-main';
-  const members = Array.from(store.members.values()).filter(m => m.teamId === teamId);
+  const members = Array.from(store.members.values()).filter((m) => m.teamId === teamId);
 
   res.status(200).json({
     success: true,
@@ -27,6 +22,23 @@ export function inviteMemberHandler(req: AuthenticatedRequest, res: Response): v
   const data = InviteMemberSchema.parse(req.body);
   const teamId = (req.params.teamId as string) || req.tenant?.teamId || 'team-rota-main';
 
+  // Server-Side Business Invariant: Seat Limit Validation (HTTP 402)
+  const sub = store.subscriptions.get(teamId);
+  if (sub && sub.consumedSeats >= sub.totalSeats) {
+    res.status(402).json({
+      success: false,
+      error: {
+        code: 'SEAT_LIMIT_EXCEEDED',
+        message: 'Team seat limit reached. Please purchase additional subscription seats before inviting new members.',
+        details: {
+          consumedSeats: sub.consumedSeats,
+          totalSeats: sub.totalSeats
+        }
+      }
+    });
+    return;
+  }
+
   const newMember: MemberRecord = {
     id: crypto.randomUUID(),
     teamId,
@@ -39,10 +51,9 @@ export function inviteMemberHandler(req: AuthenticatedRequest, res: Response): v
 
   store.members.set(newMember.id, newMember);
 
-  // Update consumed seats
-  const sub = store.subscriptions.get(teamId);
+  // Increment consumed seats atomically
   if (sub) {
-    sub.consumedSeats = Math.min(sub.totalSeats, sub.consumedSeats + 1);
+    sub.consumedSeats = sub.consumedSeats + 1;
   }
 
   res.status(201).json({

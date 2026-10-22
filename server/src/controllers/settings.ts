@@ -1,21 +1,7 @@
 import { Response } from 'express';
-import { z } from 'zod';
 import { AuthenticatedRequest } from '../types';
 import { prisma } from '../db/prisma';
-
-const UpdateSettingsSchema = z.object({
-  quietHoursStart: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, 'Invalid time format (HH:mm)').optional(),
-  quietHoursEnd: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, 'Invalid time format (HH:mm)').optional(),
-  timezone: z.string().min(1).optional(),
-  pushShiftChanges: z.boolean().optional(),
-  pushSwapRequests: z.boolean().optional(),
-  pushApprovals: z.boolean().optional()
-});
-
-const RegisterDeviceTokenSchema = z.object({
-  token: z.string().min(1, 'Device push token is required'),
-  platform: z.enum(['android', 'ios', 'web']).optional().default('android')
-});
+import { UpdateSettingsSchema, RegisterDeviceTokenSchema } from '../schemas/settings';
 
 /**
  * GET /api/settings
