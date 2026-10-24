@@ -8,4 +8,5 @@ export * from './Tappable';
 export * from './RotaLogo';
 export * from './BottomTabBar';
 export * from './PushNotificationModal';
+export * from './EmailVerificationPrompt';
 

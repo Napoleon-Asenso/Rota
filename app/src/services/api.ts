@@ -222,6 +222,25 @@ export const authApi = {
         { id: 'req-special', label: '1 special character', rule: 'SPECIAL_CHAR', regex: '[^A-Za-z0-9]' }
       ];
     }
+  },
+
+  async sendVerificationEmail(email: string): Promise<{ success: boolean; data: { message: string } }> {
+    const res = await apiClient.post<{ success: boolean; data: { message: string } }>(
+      '/api/auth/send-verification',
+      { email }
+    );
+    return res.data;
+  },
+
+  async verifyEmail(
+    email: string,
+    code: string
+  ): Promise<{ success: boolean; data: { message: string; verified: boolean } }> {
+    const res = await apiClient.post<{ success: boolean; data: { message: string; verified: boolean } }>(
+      '/api/auth/verify-email',
+      { email, code }
+    );
+    return res.data;
   }
 };
 

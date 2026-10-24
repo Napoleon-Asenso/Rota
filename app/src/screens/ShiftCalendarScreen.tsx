@@ -7,6 +7,7 @@ import { Card } from '../components/Card';
 import { Badge } from '../components/Badge';
 import { Tappable } from '../components/Tappable';
 import { BottomTabBar } from '../components/BottomTabBar';
+import { EmailVerificationPrompt } from '../components/EmailVerificationPrompt';
 import { useAppStore } from '../storage/store';
 import { ChevronLeft, ChevronRight, Clock, MapPin, ArrowLeftRight } from 'lucide-react-native';
 
@@ -28,6 +29,9 @@ export function ShiftCalendarScreen(): React.JSX.Element {
   return (
     <View style={[styles.root, { backgroundColor: colors['background-color'] }]}>
       <ScrollView contentContainerStyle={styles.container}>
+        {/* Email Verification Component on First Page of App */}
+        <EmailVerificationPrompt />
+
         {/* Header & Toggle */}
         <View style={styles.headerRow}>
           <Text weight="bold" variant="3xl" color={colors['on-background-color']} accessibilityRole="header">

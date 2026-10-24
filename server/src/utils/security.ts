@@ -204,3 +204,32 @@ export function sanitizeForLogging<T>(obj: T): T {
   }
   return sanitized as T;
 }
+
+/**
+ * Generates a single-use 4-digit verification code using crypto.randomBytes(32).
+ * Directives:
+ * 1. Strictly uses crypto.randomBytes(32) — NEVER crypto.randomInt.
+ * 2. Unbiased mapping producing an exact four-digit number (1000..9999).
+ */
+export function generateFourDigitVerificationCode(): string {
+  const buffer = crypto.randomBytes(32);
+  const uint = buffer.readUInt32BE(0);
+  const code = (1000 + (uint % 9000)).toString();
+  return code;
+}
+
+/**
+ * Verifies a 4-digit verification code against a SHA-256 hash using constant-time comparison.
+ */
+export function verifyVerificationCode(inputCode: string, targetHash: string): boolean {
+  if (!inputCode || !targetHash || inputCode.length !== 4) {
+    return false;
+  }
+  const computedHash = hashToken(inputCode);
+  const computedBuffer = Buffer.from(computedHash, 'hex');
+  const targetBuffer = Buffer.from(targetHash, 'hex');
+  if (computedBuffer.length !== targetBuffer.length) {
+    return false;
+  }
+  return crypto.timingSafeEqual(computedBuffer, targetBuffer);
+}

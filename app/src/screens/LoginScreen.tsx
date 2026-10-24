@@ -6,6 +6,7 @@ import { Text } from '../components/Text';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { useAppNavigation } from '../navigation';
+import { useAppStore } from '../storage/store';
 import { ArrowLeft } from 'lucide-react-native';
 
 /**
@@ -60,6 +61,7 @@ export function LoginScreen(): React.JSX.Element {
       setIsLoading(true);
       setErrorMessage(null);
       await authApi.login(email.trim(), password.trim());
+      useAppStore.getState().setUserEmail(email.trim());
       navigation.goToDashboard();
     } catch (err: unknown) {
       const errorObj = err as { response?: { data?: { error?: { message?: string } } }; message?: string };

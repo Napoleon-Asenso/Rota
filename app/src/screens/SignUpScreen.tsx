@@ -6,6 +6,7 @@ import { Text } from '../components/Text';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { useAppNavigation } from '../navigation';
+import { useAppStore } from '../storage/store';
 import { ArrowLeft } from 'lucide-react-native';
 
 /**
@@ -193,7 +194,14 @@ export function SignUpScreen(): React.JSX.Element {
         middleName,
         lastName
       });
-      navigation.goToInviteMembers();
+
+      // Set user email and trigger verification prompt on first page of app
+      useAppStore.getState().setUserEmail(email.trim());
+      useAppStore.getState().setIsEmailVerified(false);
+      useAppStore.getState().setShowVerificationPrompt(true);
+
+      // Navigate to first page of the app (Shift Calendar Dashboard)
+      navigation.goToDashboard();
     } catch (err: unknown) {
       const errorObj = err as {
         response?: {

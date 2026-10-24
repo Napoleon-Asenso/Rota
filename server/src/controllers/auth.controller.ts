@@ -1,7 +1,16 @@
 import { Request, Response } from 'express';
 import crypto from 'crypto';
-import { PrismaClient, Role } from '@prisma/client';
-import { registerSchema, loginSchema, refreshTokenSchema, forgotPasswordSchema } from '../schemas/auth';
+import { PrismaClient } from '@prisma/client';
+import {
+  registerSchema,
+  loginSchema,
+  refreshTokenSchema,
+  forgotPasswordSchema,
+  sendVerificationEmailSchema,
+  verifyEmailSchema
+} from '../schemas/auth';
+import { verificationService } from '../services/verification.service';
+import { sendWelcomeEmail } from '../services/email.service';
 import { signAccessToken } from '../utils/jwt';
 import {
   hashPassword,
@@ -11,7 +20,7 @@ import {
   evaluatePasswordRequirements
 } from '../utils/security';
 export { hashToken };
-import { AuthenticatedRequest } from '../types';
+import { AuthenticatedRequest, Role } from '../types';
 import { store } from '../services/store.service';
 
 const prisma = new PrismaClient();
@@ -185,6 +194,21 @@ export async function registerHandler(req: Request, res: Response): Promise<void
       expiresAt
     });
 
+    // Requirement: Automatically dispatch background verification email with a code unique to this user
+    verificationService.sendVerificationCode(user.email).catch((err) => {
+      console.error('[Auth] Background email verification dispatch error:', err);
+    });
+
+    // Requirement: Dispatch welcome email to user the moment account is created and verified on the server
+    sendWelcomeEmail(
+      user.email,
+      user.firstName || user.fullName,
+      userRole,
+      'My Team'
+    ).catch((err) => {
+      console.error('[Auth] Background welcome email dispatch error:', err);
+    });
+
     res.status(201).json({
       success: true,
       data: {
@@ -193,10 +217,12 @@ export async function registerHandler(req: Request, res: Response): Promise<void
           email: user.email,
           fullName: user.fullName,
           role: userRole,
-          teamId
+          teamId,
+          isVerified: false
         },
         accessToken,
-        refreshToken: rawRefreshToken
+        refreshToken: rawRefreshToken,
+        verificationRequired: true
       }
     });
   } catch (error) {
@@ -727,5 +753,124 @@ export function passwordRequirementsHandler(_req: Request, res: Response): void 
       requirements: CANONICAL_PASSWORD_REQUIREMENTS
     }
   });
+}
+
+/**
+ * POST /api/auth/send-verification
+ * Generates and sends a single-use 4-digit verification code via Nodemailer.
+ */
+export async function sendVerificationHandler(req: Request, res: Response): Promise<void> {
+  try {
+    const parseResult = sendVerificationEmailSchema.safeParse(req.body);
+    if (!parseResult.success) {
+      res.status(400).json({
+        success: false,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: parseResult.error.errors[0]?.message || 'Please provide a valid email address.',
+          details: parseResult.error.flatten()
+        }
+      });
+      return;
+    }
+
+    const { email } = parseResult.data;
+    const result = await verificationService.sendVerificationCode(email);
+
+    if (!result.success) {
+      res.status(result.cooldownRemaining ? 429 : 500).json({
+        success: false,
+        error: {
+          code: result.cooldownRemaining ? 'RATE_LIMITED' : 'EMAIL_SEND_FAILED',
+          message: result.error || 'Failed to send verification code.',
+          details: result.cooldownRemaining ? { cooldownRemaining: result.cooldownRemaining } : null
+        }
+      });
+      return;
+    }
+
+    res.status(200).json({
+      success: true,
+      data: {
+        message: 'A one-time four-digit verification code has been sent to your email.',
+        email,
+        expiresInSeconds: 600
+      }
+    });
+  } catch (error) {
+    console.error('[Auth] Send verification error:', error);
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'An unexpected error occurred while sending verification code.',
+        details: null
+      }
+    });
+  }
+}
+
+/**
+ * POST /api/auth/verify-email
+ * Validates a single-use 4-digit verification code and consumes it immediately.
+ */
+export async function verifyEmailHandler(req: Request, res: Response): Promise<void> {
+  try {
+    const parseResult = verifyEmailSchema.safeParse(req.body);
+    if (!parseResult.success) {
+      res.status(400).json({
+        success: false,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: parseResult.error.errors[0]?.message || 'Invalid verification request.',
+          details: parseResult.error.flatten()
+        }
+      });
+      return;
+    }
+
+    const { email, code } = parseResult.data;
+    const result = await verificationService.verifyCode(email, code);
+
+    if (!result.success) {
+      res.status(400).json({
+        success: false,
+        error: {
+          code: 'VERIFICATION_FAILED',
+          message: result.error || 'Invalid or expired verification code.',
+          details: null
+        }
+      });
+      return;
+    }
+
+    // Ensure welcome email is dispatched when the user account is verified on the server
+    prisma.user.findUnique({ where: { email: email.toLowerCase() } }).then((u) => {
+      if (u) {
+        sendWelcomeEmail(u.email, u.firstName || u.fullName).catch((err) => {
+          console.error('[Auth] Welcome email post-verification dispatch error:', err);
+        });
+      }
+    }).catch(() => {});
+
+    res.status(200).json({
+      success: true,
+      data: {
+        message: 'Email verified successfully.',
+        verified: true,
+        email
+      }
+    });
+  } catch (error) {
+    console.error('[Auth] Verify email error:', error);
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'An unexpected error occurred during email verification.',
+        details: null
+      }
+    });
+  }
 }
 

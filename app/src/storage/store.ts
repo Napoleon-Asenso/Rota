@@ -55,11 +55,23 @@ interface AppState {
     quietHoursEnd?: string;
     timezone?: string;
   }) => void;
+  userEmail: string | null;
+  isEmailVerified: boolean;
+  showVerificationPrompt: boolean;
+  setUserEmail: (email: string | null) => void;
+  setIsEmailVerified: (val: boolean) => void;
+  setShowVerificationPrompt: (val: boolean) => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
   currentScreenId: 1, // Start at Screen 1 (Welcome)
   screenHistory: [1],
+  userEmail: null,
+  isEmailVerified: false,
+  showVerificationPrompt: false,
+  setUserEmail: (email) => set({ userEmail: email }),
+  setIsEmailVerified: (val) => set({ isEmailVerified: val }),
+  setShowVerificationPrompt: (val) => set({ showVerificationPrompt: val }),
   setCurrentScreenId: (id) =>
     set((state) => ({
       currentScreenId: id,

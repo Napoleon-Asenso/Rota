@@ -14,7 +14,9 @@ import {
   logoutAllHandler,
   logoutAllHandler as revokeAllHandler,
   forgotPasswordHandler,
-  passwordRequirementsHandler
+  passwordRequirementsHandler,
+  sendVerificationHandler,
+  verifyEmailHandler
 } from './controllers/auth.controller';
 import { preventPasswordInUrl, sanitizeUrlForLogging } from './middleware/security';
 import {
@@ -44,6 +46,8 @@ import {
   loginSchema,
   refreshTokenSchema,
   forgotPasswordSchema,
+  sendVerificationEmailSchema,
+  verifyEmailSchema,
   CreateShiftSchema,
   PublishShiftsSchema,
   CreateSwapSchema,
@@ -110,6 +114,10 @@ app.post('/api/auth/login', validateRequest(loginSchema), loginHandler);
 app.get('/api/auth/password-requirements', passwordRequirementsHandler);
 app.get('/api/v1/auth/password-requirements', passwordRequirementsHandler);
 app.post('/api/auth/forgot-password', validateRequest(forgotPasswordSchema), forgotPasswordHandler);
+app.post('/api/auth/send-verification', validateRequest(sendVerificationEmailSchema), sendVerificationHandler);
+app.post('/api/v1/auth/send-verification', validateRequest(sendVerificationEmailSchema), sendVerificationHandler);
+app.post('/api/auth/verify-email', validateRequest(verifyEmailSchema), verifyEmailHandler);
+app.post('/api/v1/auth/verify-email', validateRequest(verifyEmailSchema), verifyEmailHandler);
 app.post('/api/auth/refresh', validateRequest(refreshTokenSchema), refreshHandler);
 app.post('/api/auth/logout', logoutHandler);
 app.post('/api/auth/logout-all', authMiddleware, logoutAllHandler);

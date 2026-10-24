@@ -1,6 +1,5 @@
 import { Response, NextFunction } from 'express';
-import { Role } from '@prisma/client';
-import { AuthenticatedRequest, Role as TypeRole } from '../types';
+import { AuthenticatedRequest, Role } from '../types';
 import { verifyAccessToken } from '../utils/jwt';
 
 /**
@@ -69,7 +68,7 @@ export function enforceTenant(
   }
 
   const teamId = (req.params.teamId as string) || (req.body.teamId as string) || user.teamId || 'team-default-1';
-  const role: TypeRole = (user.role as TypeRole) || 'STAFF';
+  const role: Role = (user.role as Role) || 'STAFF';
 
   req.tenant = {
     teamId,
@@ -87,7 +86,7 @@ export const tenantContextMiddleware = enforceTenant;
  * requireRole
  * Checks req.user.role (or req.tenant.role). Returns HTTP 403 Forbidden if unauthorized.
  */
-export function requireRole(allowedRoles: (Role | TypeRole)[]) {
+export function requireRole(allowedRoles: Role[]) {
   return (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
     const userRole = (req.user?.role || req.tenant?.role) as Role;
     if (!userRole || !allowedRoles.includes(userRole)) {

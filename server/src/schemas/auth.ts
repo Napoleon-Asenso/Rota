@@ -41,7 +41,21 @@ export const forgotPasswordSchema = z.object({
   email: z.string().trim().email('Invalid email address')
 });
 
+export const sendVerificationEmailSchema = z.object({
+  email: z.string().trim().email('Invalid email address')
+});
+
+export const verifyEmailSchema = z.object({
+  email: z.string().trim().email('Invalid email address'),
+  code: z
+    .string()
+    .trim()
+    .regex(/^\d{4}$/, 'Verification code must be a four digit number.')
+});
+
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type RefreshTokenInput = z.infer<typeof refreshTokenSchema>;
 export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
+export type SendVerificationEmailInput = z.infer<typeof sendVerificationEmailSchema>;
+export type VerifyEmailInput = z.infer<typeof verifyEmailSchema>;

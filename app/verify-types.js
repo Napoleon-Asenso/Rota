@@ -30,6 +30,7 @@ const filesToVerify = [
   path.resolve(__dirname, 'src/components/Badge.tsx'),
   path.resolve(__dirname, 'src/components/Chip.tsx'),
   path.resolve(__dirname, 'src/components/PushNotificationModal.tsx'),
+  path.resolve(__dirname, 'src/components/EmailVerificationPrompt.tsx'),
   path.resolve(__dirname, 'src/components/feed/LoadingState.tsx'),
   path.resolve(__dirname, 'src/components/feed/EmptyState.tsx'),
   path.resolve(__dirname, 'src/components/feed/EndOfListState.tsx'),
